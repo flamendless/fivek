@@ -4,8 +4,12 @@ import "core:fmt"
 import "game"
 
 main :: proc() {
+	fmt.println("Checking defs...")
+	defs := game.get_defs()
+	fmt.println(defs)
+
 	fmt.println("Initializing game...")
-	g := game.init()
+	g := game.init(defs)
 	defer {
 		fmt.println("Closing game...")
 		game.close(g)
