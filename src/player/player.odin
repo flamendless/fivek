@@ -1,58 +1,114 @@
 package player
 
-import "core:fmt"
-import "core:math/linalg"
+import "core:math"
 import rl "vendor:raylib"
+import "../config"
+import "../input"
 import "../world"
 
+PLAYER_W :: 12
+PLAYER_H :: 24
+
+SPRINT_MULT :: 1.5
+STAMINA_MAX :: 3.0
+STAMINA_REGEN :: 0.35
+EXHAUST_FLASH_HZ :: 8.0
+
 Player :: struct {
-	gravity: f32,
 	pos: rl.Vector2,
 	size: rl.Vector2,
 	speed: f32,
 	bb: rl.Rectangle,
+	stamina: f32,
+	exhausted: bool,
 }
 
-init :: proc(pos: rl.Vector2, gravity: f32) -> ^Player {
+init :: proc(pos: rl.Vector2, speed: f32) -> ^Player {
 	p := new(Player)
-	p.gravity = gravity
 	p.pos = pos
-	p.size = {32, 32}
-	p.speed = 64
-	p.bb = {p.pos.x, p.pos.y, p.size.x, p.size.y}
+	p.size = {f32(PLAYER_W), f32(PLAYER_H)}
+	p.speed = speed
+	p.stamina = STAMINA_MAX
+	p.exhausted = false
+	sync_bounds(p)
 	return p
 }
 
-update :: proc(p: ^Player, g: ^world.Ground) {
-	movement: rl.Vector2
+exhaust_flash_on :: proc() -> bool {
+	return i32(rl.GetTime() * EXHAUST_FLASH_HZ) % 2 == 0
+}
 
-	up := rl.IsKeyDown(.UP) || rl.IsKeyDown(.W)
-	down := rl.IsKeyDown(.DOWN) || rl.IsKeyDown(.S)
-	left := rl.IsKeyDown(.LEFT) || rl.IsKeyDown(.A)
-	right := rl.IsKeyDown(.RIGHT) || rl.IsKeyDown(.D)
+update :: proc(p: ^Player, ground: ^world.Ground, world_width: f32, dt: f32) {
+	move_x: f32
 
-	if up { movement.y -= 1 }
-	if down { movement.y += 1 }
-	if left { movement.x -= 1 }
-	if right { movement.x += 1 }
-	movement = linalg.normalize0(movement)
-	p.pos += movement * rl.GetFrameTime() * p.speed
-
-	projected_bb := p.bb
-	projected_bb.y += p.gravity * rl.GetFrameTime()
-	if !rl.CheckCollisionRecs(projected_bb, g.bb) {
-		p.pos.y = projected_bb.y
+	if input.key_down(.A) || input.key_down(.LEFT) {
+		move_x -= 1
+	}
+	if input.key_down(.D) || input.key_down(.RIGHT) {
+		move_x += 1
 	}
 
-	p.bb.x = p.pos.x
-	p.bb.y = p.pos.y
+	shift := input.key_down(.LEFT_SHIFT)
+
+	speed_mult: f32 = 1.0
+	when config.IS_AUTOTEST {
+		p.exhausted = false
+		p.stamina = STAMINA_MAX
+		if shift && move_x != 0 {
+			speed_mult = SPRINT_MULT
+		}
+	} else {
+		p.exhausted = shift && p.stamina <= 0
+		if p.exhausted {
+			move_x = 0
+		} else {
+			sprinting := shift && move_x != 0 && p.stamina > 0
+			if sprinting {
+				speed_mult = SPRINT_MULT
+				p.stamina -= dt
+				if p.stamina < 0 {
+					p.stamina = 0
+				}
+			} else {
+				p.stamina += STAMINA_REGEN * dt
+				if p.stamina > STAMINA_MAX {
+					p.stamina = STAMINA_MAX
+				}
+			}
+		}
+	}
+
+	p.pos.x += move_x * p.speed * speed_mult * dt
+	p.pos.x = math.clamp(p.pos.x, 0, world_width - p.size.x)
+
+	p.pos.y = ground.top_y - p.size.y
+	sync_bounds(p)
+}
+
+sync_bounds :: proc(p: ^Player) {
+	p.bb = {p.pos.x, p.pos.y, p.size.x, p.size.y}
+}
+
+bounds_rect :: proc(p: ^Player) -> rl.Rectangle {
+	return {p.pos.x, p.pos.y, p.size.x, p.size.y}
+}
+
+draw_rect_outline :: proc(rect: rl.Rectangle, color: rl.Color) {
+	rl.DrawRectangleLinesEx(rect, 1, color)
 }
 
 draw :: proc(p: ^Player) {
-	rl.DrawRectangleV(p.pos, p.size, rl.WHITE)
-	// rl.DrawTextureEx(g.player_texture, g.player_pos, 0, 1, rl.WHITE)
+	rect := bounds_rect(p)
+	fill := rl.WHITE
+	if p.exhausted && exhaust_flash_on() {
+		fill = rl.RED
+	}
+	rl.DrawRectangleV(p.pos, p.size, fill)
+	draw_rect_outline(rect, rl.RED)
 }
 
-debug_draw :: proc(p: ^Player) {
-	rl.DrawRectangleLines(auto_cast p.bb.x, auto_cast p.bb.y, auto_cast p.bb.width, auto_cast p.bb.height, rl.RED)
+when config.IS_DEBUG {
+	debug_draw :: proc(p: ^Player) {
+		draw_rect_outline(bounds_rect(p), rl.RED)
+	}
 }

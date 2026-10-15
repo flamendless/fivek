@@ -1,0 +1,7 @@
+.DS_Store
+assets/*.rar
+fivek
+fivek_autotest
+fivek_main_check
+web/game.wasm
+web/game.wasm.o

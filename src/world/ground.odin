@@ -6,12 +6,14 @@ Ground :: struct {
 	pos: rl.Vector2,
 	size: rl.Vector2,
 	bb: rl.Rectangle,
+	top_y: f32,
 }
 
-init_ground :: proc(game_size: rl.Vector2) -> ^Ground {
+init_ground :: proc(world_width: f32, game_height: f32) -> ^Ground {
 	ground := new(Ground)
-	ground.pos = {0, auto_cast game_size.y*0.8}
-	ground.size = {auto_cast game_size.x, auto_cast game_size.y}
+	ground.top_y = game_height * 0.8
+	ground.pos = {0, ground.top_y}
+	ground.size = {world_width, game_height - ground.top_y}
 	ground.bb = {ground.pos.x, ground.pos.y, ground.size.x, ground.size.y}
 	return ground
 }

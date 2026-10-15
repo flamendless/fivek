@@ -1,27 +1,34 @@
 package main
 
 import "core:fmt"
+import "config"
 import "game"
 
-main :: proc() {
-	fmt.println("Checking defs...")
-	defs := game.get_defs()
-	fmt.println(defs)
-
-	fmt.println("Initializing game...")
-	g := game.init(defs)
-	defer {
-		fmt.println("Closing game...")
-		game.close(g)
+when config.IS_AUTOTEST {
+	main :: proc() {
+		game.exit_autotest(game.run_autotest())
 	}
-	fmt.println(g)
+} else {
+	main :: proc() {
+		fmt.println("Checking defs...")
+		defs := game.get_defs()
+		fmt.println(defs)
 
-	fmt.println("Initializing window...")
-	game.init_window(g)
-	defer {
-		fmt.println("Closing window...")
-		game.close_window()
+		fmt.println("Initializing game...")
+		g := game.init(defs)
+		defer {
+			fmt.println("Closing game...")
+			game.close(g)
+		}
+		fmt.println(g)
+
+		fmt.println("Initializing window...")
+		game.init_window(g)
+		defer {
+			fmt.println("Closing window...")
+			game.close_window()
+		}
+
+		game.loop(g)
 	}
-
-	game.loop(g)
 }

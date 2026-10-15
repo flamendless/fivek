@@ -1,36 +1,54 @@
 package game
 
-import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
+import "../config"
 
-get_game_camera :: proc(target: rl.Vector2, offset: rl.Vector2, scale: f32) -> ^rl.Camera2D {
-	camera := new(rl.Camera2D)
-	camera.target = [2]f32{target.x, target.y}
-	camera.offset = [2]f32{
-		auto_cast offset.x/2,
-		auto_cast offset.y/2,
+init_game_camera :: proc(game_size: rl.Vector2, scale: f32) -> rl.Camera2D {
+	return rl.Camera2D{
+		offset = {game_size.x * 0.5, game_size.y * 0.5},
+		zoom = scale,
 	}
-	camera.zoom = scale
-	return camera
 }
 
-get_ui_camera :: proc(scale: f32) -> ^rl.Camera2D {
-	camera := new(rl.Camera2D)
-	camera.zoom = scale
-	return camera
+init_ui_camera :: proc(scale: f32) -> rl.Camera2D {
+	return rl.Camera2D{zoom = scale}
+}
+
+camera_world_height_y :: proc(game_size: rl.Vector2) -> f32 {
+	return game_size.y * 0.5
 }
 
 update_camera :: proc(g: ^Game) {
-	g.camera.target.x = g.player.pos.x
-	g.camera.target.y = g.player.pos.y
-	// g.camera.offset.x = math.clamp(g.camera.offset.x, 0, g.game_size.x)
-	// g.camera.offset.y = math.clamp(g.camera.offset.y, 0, g.game_size.y)
+	g.camera.target.x = g.player.pos.x + g.player.size.x * 0.5
+	g.camera.target.y = camera_world_height_y(g.game_size)
+
+	half_w := g.game_size.x * 0.5
+	world_w := g.world_width
+	if world_w > g.game_size.x {
+		min_x := half_w
+		max_x := world_w - half_w
+		g.camera.target.x = math.clamp(g.camera.target.x, min_x, max_x)
+	}
 }
 
-debug_draw_camera :: proc(g: ^Game) {
-	rl.BeginMode2D(g.camera^)
-		rl.DrawCircleV(g.camera.target, 8.0, rl.RED)
-		rl.DrawCircleV(g.camera.offset, 8.0, rl.BLUE)
-	rl.EndMode2D()
+camera_view_rect :: proc(g: ^Game) -> rl.Rectangle {
+	half_w := g.game_size.x * 0.5
+	half_h := g.game_size.y * 0.5
+	cx := g.camera.target.x
+	cy := g.camera.target.y
+	return {
+		cx - half_w,
+		cy - half_h,
+		g.game_size.x,
+		g.game_size.y,
+	}
+}
+
+when config.IS_DEBUG {
+	debug_draw_camera :: proc(g: ^Game) {
+		rl.BeginMode2D(g.camera)
+			rl.DrawCircleV(g.camera.target, 4.0, rl.RED)
+		rl.EndMode2D()
+	}
 }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="data:,">
+	<title>FiveK</title>
+	<style>
+		html, body {
+			margin: 0;
+			height: 100%;
+			overflow: hidden;
+			background: #111;
+		}
+		canvas {
+			display: block;
+			margin: 0 auto;
+			border: 0;
+			background: #000;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" width="640" height="480" tabindex="0"
+		oncontextmenu="event.preventDefault()"
+		onmousedown="event.target.focus()"
+		onkeydown="event.preventDefault()"></canvas>
+	<script src="odin.js"></script>
+	<script>
+		var odinMemoryInterface = new odin.WasmMemoryInterface();
+		odinMemoryInterface.setIntSize(4);
+		var odinImports = odin.setupDefaultImports(odinMemoryInterface);
+
+		var Module = {
+			instantiateWasm: (imports, successCallback) => {
+				const newImports = { ...odinImports, ...imports };
+				return WebAssembly.instantiateStreaming(fetch("index.wasm"), newImports).then(function(output) {
+					var e = output.instance.exports;
+					odinMemoryInterface.setExports(e);
+					odinMemoryInterface.setMemory(e.memory);
+					return successCallback(output.instance);
+				});
+			},
+			onRuntimeInitialized: () => {
+				var e = wasmExports;
+				e._start();
+				e.main_start();
+
+				function do_main_update() {
+					if (!e.main_update()) {
+						e.main_end();
+						e._end();
+						return;
+					}
+					window.requestAnimationFrame(do_main_update);
+				}
+				window.requestAnimationFrame(do_main_update);
+			},
+			canvas: () => document.getElementById("canvas"),
+		};
+	</script>
+	{{{ SCRIPT }}}
+</body>
+</html>
