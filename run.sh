@@ -106,6 +106,7 @@ build_wasm() {
 		-sUSE_GLFW=3 \
 		-sWASM_BIGINT \
 		-sWARN_ON_UNDEFINED_SYMBOLS=0 \
+		--preload-file "${ROOT}/assets/bg@assets/bg" \
 		--shell-file "${INDEX_SHELL}"
 
 	rm -f "${OUT_WASM_OBJ}"

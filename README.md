@@ -6,3 +6,9 @@ The following are used:
 - [raylib](https://pkg.odin-lang.org/vendor/raylib/) - time to finally learn this bad boi as inspired by the mr. zozin
 - [cheatsheet](https://www.raylib.com/cheatsheet/cheatsheet.html)
 - [raylib + odin guide](https://github.com/karl-zylinski/odin-raylib-hot-reload-game-template) - used as reference for the basics of raylib
+
+---
+
+# Assets
+
+- [Nature Landscape Free Pixel Art](https://free-game-assets.itch.io/nature-landscapes-free-pixel-art)

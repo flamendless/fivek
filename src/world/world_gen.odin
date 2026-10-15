@@ -224,11 +224,10 @@ free_world :: proc(w: ^World) {
 }
 
 when config.IS_DEBUG {
-	debug_draw_chunks :: proc(w: ^World, ground: ^Ground) {
+	debug_draw_chunks :: proc(w: ^World, ground: ^Ground, label_font: i32) {
 		if w == nil || ground == nil {
 			return
 		}
-		FONT :: 8
 		for c in w.chunks {
 			chunk_w := c.x_max - c.x_min
 			rect := rl.Rectangle{c.x_min, ground.top_y, chunk_w, ground.size.y}
@@ -240,13 +239,13 @@ when config.IS_DEBUG {
 
 			name := c.index == LINEUP_CHUNK_INDEX ? "lineup" : "chunk"
 			label := fmt.ctprintf("%s id=%d #%d", name, c.index, c.person_count)
-			tw := rl.MeasureText(label, FONT)
+			tw := rl.MeasureText(label, label_font)
 			cx := c.x_min + chunk_w * 0.5
 			cy := ground.top_y + ground.size.y * 0.5
 			tx := i32(cx) - tw / 2
-			ty := i32(cy - f32(FONT) * 0.5)
-			rl.DrawRectangle(tx - 1, ty - 1, tw + 2, FONT + 2, {0, 0, 0, 150})
-			rl.DrawText(label, tx, ty, FONT, rl.WHITE)
+			ty := i32(cy - f32(label_font) * 0.5)
+			rl.DrawRectangle(tx - 1, ty - 1, tw + 2, label_font + 2, {0, 0, 0, 150})
+			rl.DrawText(label, tx, ty, label_font, rl.WHITE)
 		}
 	}
 }
