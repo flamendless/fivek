@@ -16,6 +16,7 @@ CELEBRATE_HOP_HEIGHT :: 12.0
 CELEBRATE_HOP_DURATION :: 0.12
 
 SAVE_FILENAME :: "save_fivek.bin"
+INTRO_PREFS_FILENAME :: "intro_seen.bin"
 
 Game_Defs :: struct {
 	debug: bool,

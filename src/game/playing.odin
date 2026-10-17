@@ -19,13 +19,26 @@ update_playing :: proc(g: ^Game) {
 
 	player.update(g.player, g.ground, g.world_width, dt)
 
-	view := camera_view_rect(g)
 	update_camera(g)
+	view := camera_view_rect(g)
+	party_before := g.people.party_count
 	person.update_people(g.people, view, g.frame, dt)
+	person.update_apostle_follow(g.people, g.player.pos, g.player.size, dt)
+	if g.people.party_count > party_before {
+		person.sync_apostle_bits(g.people, g.apostle_bits)
+		save_game(g.save_path, g.seed, g.person_count, g.served_bits, g.apostle_bits)
+	}
 
 	fish_down := input.key_down(.F)
 	bread_down := input.key_down(.B)
+	e_down := input.key_down(.E)
 	g.interact_index = person.nearest_interact_index(
+		g.people,
+		g.player.pos,
+		g.player.size,
+		g.defs.interact_radius,
+	)
+	g.apostle_interact_index = person.nearest_apostle_interact_index(
 		g.people,
 		g.player.pos,
 		g.player.size,
@@ -52,12 +65,27 @@ update_playing :: proc(g: ^Game) {
 	}
 	g.fish_was_down = fish_down
 	g.bread_was_down = bread_down
+	if e_down && !g.e_was_down {
+		person.try_interact_apostle(
+			g.people,
+			g.player.pos,
+			g.player.size,
+			g.defs.interact_radius,
+		)
+	}
+	g.e_was_down = e_down
+
+	when config.IS_DEBUG {
+		if input.key_pressed(.M) {
+			person.debug_serve_next(g.people)
+		}
+	}
 
 	before := person.count_served(g.people)
 	person.sync_served_bits(g.people, g.served_bits)
 	after := person.count_served(g.people)
 	if after > before {
-		save_game(g.save_path, g.seed, g.person_count, g.served_bits)
+		save_game(g.save_path, g.seed, g.person_count, g.served_bits, g.apostle_bits)
 	}
 	if after >= g.person_count && g.person_count > 0 && person.sim_settled(g.people) {
 		begin_victory_march(g)
@@ -94,12 +122,12 @@ when config.IS_DEBUG {
 		line_gap := ui_px(g, 1)
 		w_speed := rl.MeasureText(speed_label, font)
 		w_bg := rl.MeasureText(bg_label, font)
-		w := max(w_speed, w_bg)
-		x := i32(g.game_size.x) - w - pad
+		panel_text_w := max(w_speed, w_bg)
+		x := i32(g.game_size.x) - panel_text_w - pad
 		y: i32 = pad
 		panel_h := font * 2 + line_gap + 2
 		rl.BeginMode2D(g.ui_camera)
-			rl.DrawRectangle(x - ui_px(g, 2), y - 1, w + ui_px(g, 4), panel_h, {0, 0, 0, 160})
+			rl.DrawRectangle(x - ui_px(g, 2), y - 1, panel_text_w + ui_px(g, 4), panel_h, {0, 0, 0, 160})
 			rl.DrawText(speed_label, x, y, font, rl.YELLOW)
 			rl.DrawText(bg_label, x, y + font + line_gap, font, rl.GRAY)
 		rl.EndMode2D()
@@ -113,17 +141,22 @@ draw_playing :: proc(g: ^Game) {
 		if g.bg != nil {
 			draw_parallax_bg(g.bg, g.camera.target.x, view)
 		}
-		if g.bg == nil {
+		if g.ground != nil {
 			rl.DrawRectangleV(g.ground.pos, g.ground.size, rl.BROWN)
 		}
 		person.draw_people(g.people, view)
+		person.draw_food_bubbles(g.people, view)
+		person.draw_apostle_overlays(g.people, view, g.player.pos, g.player.size)
 		if g.interact_index >= 0 {
 			person.draw_person_outline(g.people, g.interact_index, rl.RED)
+		}
+		if g.apostle_interact_index >= 0 {
+			person.draw_person_outline(g.people, g.apostle_interact_index, {100, 220, 255, 255})
 		}
 		player.draw(g.player)
 		when config.IS_DEBUG {
 			if playing_debug_visible(g) && g.level != nil {
-				w.debug_draw_chunks(g.level, g.ground, ui_font(g, 8))
+				w.debug_draw_chunks(g.level, g.ground, ui_font(g, 8), g.camera.zoom)
 			}
 		}
 	rl.EndMode2D()
@@ -141,7 +174,7 @@ draw_playing_overlay :: proc(g: ^Game) {
 	pad := ui_px(g, 4)
 	inner := pad + ui_px(g, 4)
 	panel_w := ui_px(g, 148)
-	panel_h := ui_px(g, 92)
+	panel_h := ui_px(g, 104)
 	rl.BeginMode2D(g.ui_camera)
 		rl.DrawRectangle(pad, pad, panel_w, panel_h, {0, 0, 0, 180})
 		y: i32 = pad + ui_px(g, 2)
@@ -154,6 +187,8 @@ draw_playing_overlay :: proc(g: ^Game) {
 		rl.DrawText("F  Give fish", inner, y, font, rl.LIGHTGRAY)
 		y += font + ui_px(g, 1)
 		rl.DrawText("B  Give bread", inner, y, font, rl.LIGHTGRAY)
+		y += font + ui_px(g, 1)
+		rl.DrawText("E  Recruit apostle", inner, y, font, rl.LIGHTGRAY)
 		y += font + ui_px(g, 2)
 		bar_x: i32 = inner
 		bar_w := ui_px(g, 100)

@@ -10,6 +10,7 @@ PLAYER_W :: 12
 PLAYER_H :: 24
 
 SPRINT_MULT :: 1.5
+DEBUG_SPRINT_MULT :: 3.0
 STAMINA_MAX :: 3.0
 STAMINA_REGEN :: 0.35
 EXHAUST_FLASH_HZ :: 8.0
@@ -21,6 +22,7 @@ Player :: struct {
 	bb: rl.Rectangle,
 	stamina: f32,
 	exhausted: bool,
+	facing: f32,
 }
 
 init :: proc(pos: rl.Vector2, speed: f32) -> ^Player {
@@ -30,6 +32,7 @@ init :: proc(pos: rl.Vector2, speed: f32) -> ^Player {
 	p.speed = speed
 	p.stamina = STAMINA_MAX
 	p.exhausted = false
+	p.facing = 1
 	sync_bounds(p)
 	return p
 }
@@ -51,11 +54,15 @@ update :: proc(p: ^Player, ground: ^world.Ground, world_width: f32, dt: f32) {
 	shift := input.key_down(.LEFT_SHIFT)
 
 	speed_mult: f32 = 1.0
-	when config.IS_AUTOTEST {
+	when config.IS_AUTOTEST || config.IS_DEBUG {
 		p.exhausted = false
 		p.stamina = STAMINA_MAX
 		if shift && move_x != 0 {
-			speed_mult = SPRINT_MULT
+			when config.IS_DEBUG {
+				speed_mult = DEBUG_SPRINT_MULT
+			} else {
+				speed_mult = SPRINT_MULT
+			}
 		}
 	} else {
 		p.exhausted = shift && p.stamina <= 0
@@ -76,6 +83,10 @@ update :: proc(p: ^Player, ground: ^world.Ground, world_width: f32, dt: f32) {
 				}
 			}
 		}
+	}
+
+	if move_x != 0 {
+		p.facing = move_x
 	}
 
 	p.pos.x += move_x * p.speed * speed_mult * dt

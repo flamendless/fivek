@@ -28,7 +28,7 @@ enter_victory_lineup_pause :: proc(g: ^Game) {
 	player.sync_bounds(g.player)
 
 	chunk_center := g.game_size.x * 0.5
-	half_w := g.game_size.x * 0.5
+	half_w := camera_world_half_w(g)
 	g.camera.target.x = math.clamp(chunk_center, half_w, g.world_width - half_w)
 	g.camera.target.y = camera_world_height_y(g.game_size)
 }
@@ -64,7 +64,7 @@ update_victory_lineup :: proc(g: ^Game) {
 		g.mode = .Credits
 	}
 	if rl.IsKeyPressed(.ESCAPE) {
-		rl.CloseWindow()
+		request_app_shutdown()
 	}
 }
 

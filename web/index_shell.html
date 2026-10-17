@@ -45,6 +45,7 @@
 				var e = wasmExports;
 				e._start();
 				e.main_start();
+				document.getElementById("canvas").focus();
 
 				function do_main_update() {
 					if (!e.main_update()) {
@@ -56,7 +57,7 @@
 				}
 				window.requestAnimationFrame(do_main_update);
 			},
-			canvas: () => document.getElementById("canvas"),
+			canvas: document.getElementById("canvas"),
 		};
 	</script>
 	{{{ SCRIPT }}}

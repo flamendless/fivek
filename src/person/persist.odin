@@ -2,7 +2,7 @@ package person
 
 count_served :: proc(p: ^People) -> int {
 	n := 0
-	for i in 0 ..< len(p.rows) {
+	for i in 0 ..< p.crowd_count {
 		if p.rows[i].served {
 			n += 1
 		}
@@ -23,7 +23,7 @@ sim_settled :: proc(p: ^People) -> bool {
 			if row.subbehavior != .None {
 				return false
 			}
-		case .In_Lineup, .Gone:
+		case .In_Lineup, .Gone, .Following:
 			break
 		}
 	}
@@ -40,7 +40,7 @@ place_in_lineup_slot :: proc(p: ^People, person_i: int) {
 }
 
 apply_served_bits :: proc(p: ^People, bits: []u8) {
-	for i in 0 ..< len(p.rows) {
+	for i in 0 ..< p.crowd_count {
 		if served_bit_get(bits, i) {
 			p.rows[i].has_fish = true
 			p.rows[i].has_bread = true
@@ -50,7 +50,7 @@ apply_served_bits :: proc(p: ^People, bits: []u8) {
 }
 
 sync_served_bits :: proc(p: ^People, bits: []u8) {
-	for i in 0 ..< len(p.rows) {
+	for i in 0 ..< p.crowd_count {
 		if p.rows[i].served {
 			served_bit_set(bits, i)
 		}

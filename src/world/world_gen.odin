@@ -146,11 +146,8 @@ generate_world :: proc(params: World_Params) -> ^World {
 			margin := f32(PERSON_MARGIN)
 			chunk_lo := x_min + margin
 			chunk_hi := x_max - margin
-			span := chunk_hi - chunk_lo
-			if span < 8 {
-				span = 8
-				chunk_hi = chunk_lo + span
-			}
+			span := max(chunk_hi - chunk_lo, 8)
+			chunk_hi = chunk_lo + span
 			bound_min := chunk_lo + f32(rand.int_max(max(int(span * 0.5), 1)))
 			bound_max := chunk_lo + f32(rand.int_max(max(int(span), 1)))
 			bound_max = math.clamp(bound_max, bound_min + 8, chunk_hi)
@@ -224,10 +221,17 @@ free_world :: proc(w: ^World) {
 }
 
 when config.IS_DEBUG {
-	debug_draw_chunks :: proc(w: ^World, ground: ^Ground, label_font: i32) {
+	// label_screen_px: on-screen size at zoom 1; world_zoom: g.camera.zoom (game world camera).
+	debug_draw_chunks :: proc(
+		w: ^World,
+		ground: ^Ground,
+		label_screen_px: i32,
+		world_zoom: f32,
+	) {
 		if w == nil || ground == nil {
 			return
 		}
+		label_font := max(i32(f32(label_screen_px) / world_zoom + 0.5), 1)
 		for c in w.chunks {
 			chunk_w := c.x_max - c.x_min
 			rect := rl.Rectangle{c.x_min, ground.top_y, chunk_w, ground.size.y}
@@ -239,12 +243,11 @@ when config.IS_DEBUG {
 
 			name := c.index == LINEUP_CHUNK_INDEX ? "lineup" : "chunk"
 			label := fmt.ctprintf("%s id=%d #%d", name, c.index, c.person_count)
-			tw := rl.MeasureText(label, label_font)
+			tw := f32(rl.MeasureText(label, label_font))
 			cx := c.x_min + chunk_w * 0.5
-			cy := ground.top_y + ground.size.y * 0.5
-			tx := i32(cx) - tw / 2
-			ty := i32(cy - f32(label_font) * 0.5)
-			rl.DrawRectangle(tx - 1, ty - 1, tw + 2, label_font + 2, {0, 0, 0, 150})
+			tx := i32(cx - tw * 0.5)
+			ty := i32(ground.top_y + 4)
+			rl.DrawRectangle(tx - 1, ty - 1, i32(tw) + 2, label_font + 2, {0, 0, 0, 150})
 			rl.DrawText(label, tx, ty, label_font, rl.WHITE)
 		}
 	}

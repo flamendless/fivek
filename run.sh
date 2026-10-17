@@ -20,6 +20,7 @@ Commands:
   build        Build native game binary only
   check        Type-check game and autotest entrypoints
   wasm         Build WebAssembly for the browser (needs emcc)
+  wasm-deps    Install wasm toolchain (lld, emsdk, raylib wasm libs)
   wasm-run     Build wasm and serve web/
 EOF
 }
@@ -29,7 +30,7 @@ build_game() {
 }
 
 build_autotest() {
-	odin build src/main.odin -file -out:"${OUT_AUTOTEST}" -define:AUTOTEST=true
+	odin build src/main.odin -file -out:"${OUT_AUTOTEST}" -define:AUTOTEST=true -define:DEBUG=true
 }
 
 ensure_wasm_ld() {
@@ -63,19 +64,67 @@ ensure_emcc() {
 	return 1
 }
 
+install_wasm_deps() {
+	if ! command -v wasm-ld >/dev/null 2>&1; then
+		if command -v brew >/dev/null 2>&1; then
+			echo "wasm-deps: installing lld@22 (wasm-ld)" >&2
+			brew install lld@22
+		else
+			echo "wasm-deps: wasm-ld missing; install LLVM lld or: brew install lld@22" >&2
+			exit 1
+		fi
+	fi
+
+	local emsdk="${EMSCRIPTEN_SDK_DIR:-$HOME/repos/emsdk}"
+	if ! command -v emcc >/dev/null 2>&1; then
+		if [[ ! -f "${emsdk}/emsdk_env.sh" ]]; then
+			echo "wasm-deps: cloning emsdk into ${emsdk}" >&2
+			mkdir -p "$(dirname "${emsdk}")"
+			git clone https://github.com/emscripten-core/emsdk.git "${emsdk}"
+		fi
+		echo "wasm-deps: emsdk install latest (may take a while)" >&2
+		(
+			cd "${emsdk}"
+			./emsdk install latest
+			./emsdk activate latest
+		)
+		echo "wasm-deps: add to your shell: source \"${emsdk}/emsdk_env.sh\"" >&2
+		echo "wasm-deps: or set EMSCRIPTEN_SDK_DIR=${emsdk}" >&2
+	fi
+
+	ensure_raylib_wasm_libs
+	echo "wasm-deps: done" >&2
+}
+
+raylib_wasm_ar_ok() {
+	[[ -f "$1" ]] && [[ "$(file -b "$1")" == "current ar archive" ]]
+}
+
+fetch_raylib_wasm_ar() {
+	local dest="$1" url="$2"
+	curl -fsSL -o "${dest}" "${url}"
+	if ! raylib_wasm_ar_ok "${dest}"; then
+		rm -f "${dest}"
+		echo "wasm: ${dest} is not a valid .a (got Git LFS pointer?)" >&2
+		return 1
+	fi
+}
+
 ensure_raylib_wasm_libs() {
-	local odin_root wasm_dir
+	local odin_root wasm_dir base
 	odin_root="$(odin root)"
 	wasm_dir="${odin_root}/vendor/raylib/wasm"
-	if [[ -f "${wasm_dir}/libraylib.web.a" ]]; then
-		return 0
-	fi
-	echo "wasm: fetching raylib wasm libs into ${wasm_dir}" >&2
+	base="https://github.com/odin-lang/Odin/raw/master/vendor/raylib/wasm"
 	mkdir -p "${wasm_dir}"
-	curl -fsSL -o "${wasm_dir}/libraylib.web.a" \
-		"https://raw.githubusercontent.com/odin-lang/Odin/master/vendor/raylib/wasm/libraylib.web.a"
-	curl -fsSL -o "${wasm_dir}/libraygui.a" \
-		"https://raw.githubusercontent.com/odin-lang/Odin/master/vendor/raylib/wasm/libraygui.a"
+
+	if ! raylib_wasm_ar_ok "${wasm_dir}/libraylib.web.a"; then
+		echo "wasm: fetching libraylib.web.a into ${wasm_dir}" >&2
+		fetch_raylib_wasm_ar "${wasm_dir}/libraylib.web.a" "${base}/libraylib.web.a"
+	fi
+	if ! raylib_wasm_ar_ok "${wasm_dir}/libraygui.a"; then
+		echo "wasm: fetching libraygui.a into ${wasm_dir}" >&2
+		fetch_raylib_wasm_ar "${wasm_dir}/libraygui.a" "${base}/libraygui.a"
+	fi
 }
 
 build_wasm() {
@@ -104,9 +153,10 @@ build_wasm() {
 		"${odin_root}/vendor/raylib/wasm/libraylib.web.a" \
 		"${odin_root}/vendor/raylib/wasm/libraygui.a" \
 		-sUSE_GLFW=3 \
-		-sWASM_BIGINT \
+		-sASYNCIFY \
 		-sWARN_ON_UNDEFINED_SYMBOLS=0 \
 		--preload-file "${ROOT}/assets/bg@assets/bg" \
+		--preload-file "${ROOT}/assets/flamendless_logo.png@assets/flamendless_logo.png" \
 		--shell-file "${INDEX_SHELL}"
 
 	rm -f "${OUT_WASM_OBJ}"
@@ -138,6 +188,9 @@ case "${cmd}" in
 		;;
 	wasm)
 		build_wasm
+		;;
+	wasm-deps)
+		install_wasm_deps
 		;;
 	wasm-run)
 		build_wasm

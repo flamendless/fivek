@@ -3,6 +3,7 @@ package main
 import "core:fmt"
 import "config"
 import "game"
+import "food"
 
 when config.IS_AUTOTEST {
 	main :: proc() {
@@ -24,6 +25,8 @@ when config.IS_AUTOTEST {
 
 		fmt.println("Initializing window...")
 		game.init_window(g)
+		game.load_intro_assets(g)
+		food.load()
 		defer {
 			fmt.println("Closing window...")
 			game.close_window()

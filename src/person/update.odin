@@ -21,6 +21,8 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 			p.rows[i].state = .Idle
 		}
 		return
+	case .Following:
+		return
 	case .Active:
 		break
 	}
@@ -35,9 +37,13 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		if p.rows[i].hop_timer <= 0 {
 			p.rows[i].hop_step += 1
 			if p.rows[i].hop_step >= p.rows[i].hop_count {
-				p.rows[i].pos_y = p.rows[i].base_y
-				p.rows[i].hop_step = 0
-				begin_post_serve(p, i)
+				if p.rows[i].role == .Apostle {
+					finish_apostle_celebrate(p, i)
+				} else {
+					p.rows[i].pos_y = p.rows[i].base_y
+					p.rows[i].hop_step = 0
+					begin_post_serve(p, i)
+				}
 			} else {
 				p.rows[i].hop_timer = CELEBRATE_HOP_DURATION
 			}
@@ -48,8 +54,14 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		}
 
 	case .Idle:
-		if p.rows[i].has_fish && p.rows[i].has_bread && !p.rows[i].served {
+		if p.rows[i].role == .Crowd &&
+		   p.rows[i].has_fish &&
+		   p.rows[i].has_bread &&
+		   !p.rows[i].served {
 			begin_celebrating(p, i)
+			return
+		}
+		if p.rows[i].role == .Apostle {
 			return
 		}
 		p.rows[i].timer -= dt
@@ -58,7 +70,10 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		}
 
 	case .Walking, .Running:
-		if p.rows[i].has_fish && p.rows[i].has_bread && !p.rows[i].served {
+		if p.rows[i].role == .Crowd &&
+		   p.rows[i].has_fish &&
+		   p.rows[i].has_bread &&
+		   !p.rows[i].served {
 			begin_celebrating(p, i)
 			return
 		}
@@ -74,6 +89,7 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 }
 
 update_people :: proc(p: ^People, view: rl.Rectangle, frame: int, dt: f32) {
+	tick_apostle_reject_flash(p, dt)
 	for i in 0 ..< len(p.rows) {
 		if p.rows[i].phase == .Gone {
 			continue

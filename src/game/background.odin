@@ -4,7 +4,7 @@ import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
 
-PARALLAX_MAX :: 0.65
+PARALLAX_MAX :: 0.0
 
 BG_Set :: struct {
 	name: cstring,
@@ -23,7 +23,6 @@ BG_SETS := []BG_Set{
 			"assets/bg/nature_1/6.png",
 			"assets/bg/nature_1/7.png",
 			"assets/bg/nature_1/8.png",
-			"assets/bg/nature_1/10.png",
 		},
 	},
 	{
@@ -124,6 +123,7 @@ draw_parallax_bg :: proc(bg: ^Parallax_BG, cam_x: f32, view: rl.Rectangle) {
 	denom := f32(max(n - 1, 1))
 
 	for &layer, i in bg.layers {
+		// World-space tiles: camera pan already scrolls; extra scroll only for depth (0 = locked to gameplay).
 		t := (f32(i) / denom) * PARALLAX_MAX
 		scroll := cam_x * t
 		tile_w := layer.tile_w

@@ -1,7 +1,14 @@
 .DS_Store
 assets/*.rar
+
+# Native build outputs
 fivek
 fivek_autotest
 fivek_main_check
-web/game.wasm
-web/game.wasm.o
+
+# Local save / prefs
+*.bin
+
+# Web build output (./run.sh wasm); source template is index_shell.html
+web/*
+!web/index_shell.html

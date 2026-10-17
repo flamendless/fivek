@@ -2,14 +2,15 @@ package person
 
 import "core:math"
 import "core:math/rand"
+import "../config"
 
-age_flees_after_gift :: proc(age: Person_Age) -> bool {
+age_flees_after_food :: proc(age: Person_Age) -> bool {
 	return age == .Kid || age == .Young
 }
 
-begin_flee_after_gift :: proc(p: ^People, i: int, player_cx: f32) {
+begin_flee_after_food :: proc(p: ^People, i: int, player_cx: f32) {
 	row := &p.rows[i]
-	row.subbehavior = .Flee_After_Gift
+	row.subbehavior = .Flee_After_Food
 	row.flee_remaining = rand_float_range(CHILD_FLEE_DISTANCE_MIN, CHILD_FLEE_DISTANCE_MAX)
 	row.state = .Running
 	person_cx := row.pos_x + row.size_w * 0.5
@@ -20,7 +21,7 @@ begin_flee_after_gift :: proc(p: ^People, i: int, player_cx: f32) {
 	}
 }
 
-end_flee_after_gift :: proc(p: ^People, i: int) {
+end_flee_after_food :: proc(p: ^People, i: int) {
 	p.rows[i].subbehavior = .None
 	p.rows[i].flee_remaining = 0
 	if !try_begin_celebrate(p, i) {
@@ -33,7 +34,7 @@ update_subbehavior :: proc(p: ^People, i: int, dt: f32) -> bool {
 	switch row.subbehavior {
 	case .None:
 		return false
-	case .Flee_After_Gift:
+	case .Flee_After_Food:
 		if try_begin_celebrate(p, i) {
 			return true
 		}
@@ -43,12 +44,12 @@ update_subbehavior :: proc(p: ^People, i: int, dt: f32) -> bool {
 		roam_after_step(p, i)
 		moved := math.abs(row.pos_x - prev_x)
 		if moved == 0 {
-			end_flee_after_gift(p, i)
+			end_flee_after_food(p, i)
 			return true
 		}
 		row.flee_remaining -= moved
 		if row.flee_remaining <= 0 {
-			end_flee_after_gift(p, i)
+			end_flee_after_food(p, i)
 		}
 		return true
 	}
@@ -70,9 +71,6 @@ pick_lineup_after_serve :: proc(age: Person_Age) -> bool {
 
 lineup_slots_per_row :: proc(chunk_width: f32) -> int {
 	inner := chunk_width - LINEUP_PAD * 2
-	if inner < LINEUP_SLOT_PITCH {
-		return 1
-	}
 	return max(int(inner / LINEUP_SLOT_PITCH), 1)
 }
 
@@ -144,4 +142,21 @@ move_toward_target :: proc(p: ^People, i: int, dt: f32) -> bool {
 	p.rows[i].pos_x += p.rows[i].dir * speed * dt
 	p.rows[i].pos_y = p.rows[i].target_y
 	return false
+}
+
+when config.IS_DEBUG {
+	debug_serve_next :: proc(p: ^People) -> bool {
+		for i in 0 ..< p.crowd_count {
+			if p.rows[i].served {
+				continue
+			}
+			p.rows[i].has_fish = true
+			p.rows[i].has_bread = true
+			p.rows[i].subbehavior = .None
+			p.rows[i].flee_remaining = 0
+			begin_post_serve(p, i)
+			return true
+		}
+		return false
+	}
 }

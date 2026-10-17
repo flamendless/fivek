@@ -16,9 +16,6 @@ LINEUP_PAD :: 4.0
 LINEUP_SLOT_PITCH :: 14.0
 LINEUP_ROW_DEPTH :: 8.0
 POST_SERVE_SPEED_MULT :: 2.0
-GIFT_DOT_RADIUS :: 4.0
-FISH_DOT_COLOR :: rl.Color{50, 120, 220, 255}
-BREAD_DOT_COLOR :: rl.Color{139, 90, 43, 255}
 WALL_IDLE_GRACE :: 0.15
 CHILD_FLEE_DISTANCE_MIN :: 48.0
 CHILD_FLEE_DISTANCE_MAX :: 96.0
@@ -36,6 +33,12 @@ Person_Phase :: enum {
 	Run_Home,
 	In_Lineup,
 	Gone,
+	Following,
+}
+
+Person_Role :: enum {
+	Crowd,
+	Apostle,
 }
 
 Person_Age :: enum {
@@ -46,7 +49,7 @@ Person_Age :: enum {
 
 Person_Subbehavior :: enum {
 	None,
-	Flee_After_Gift,
+	Flee_After_Food,
 }
 
 Person :: struct {
@@ -65,19 +68,32 @@ Person :: struct {
 	target_x, target_y: f32,
 	line_row: int,
 	has_fish, has_bread: bool,
+	fish_icon, bread_icon: u8,
 	served: bool,
 	speed_scale: f32,
 	color: rl.Color,
 	last_roam: Person_State,
 	subbehavior: Person_Subbehavior,
 	flee_remaining: f32,
+	role: Person_Role,
+	apostle_idx: u8,
+	required_served: u16,
+	party_slot: int,
+	reject_flash: f32,
 }
+
+PARTY_TRAIL_CAP :: 2048
 
 People :: struct {
 	rows: #soa[]Person,
+	crowd_count: int,
+	party_count: int,
 	lineup_chunk_width: f32,
 	lineup_ground_y: f32,
 	lineup_next_slot: int,
+	party_trail_x: [PARTY_TRAIL_CAP]f32,
+	party_trail_head: int,
+	party_trail_count: int,
 }
 
 Give_Item :: enum {
@@ -114,6 +130,8 @@ init_people :: proc(spawn: #soa[]world.Spawn_Person, lineup_chunk_width: f32, li
 	p.lineup_chunk_width = lineup_chunk_width
 	p.lineup_ground_y = lineup_ground_y
 	n := len(spawn)
+	p.crowd_count = n
+	p.party_count = 0
 	p.rows = make_soa_slice(#soa[]Person, n) or_else panic("people alloc failed")
 	for i in 0 ..< n {
 		s := spawn[i]
@@ -132,6 +150,8 @@ init_people :: proc(spawn: #soa[]world.Spawn_Person, lineup_chunk_width: f32, li
 			dir = 1,
 			speed_scale = s.speed_scale,
 			color = color_from_u32(s.color),
+			role = .Crowd,
+			party_slot = -1,
 		}
 	}
 	return p
@@ -154,8 +174,13 @@ draw_rect_outline :: proc(rect: rl.Rectangle, color: rl.Color) {
 }
 
 is_interactable :: proc(p: ^People, i: int) -> bool {
-	return p.rows[i].phase == .Active &&
+	return p.rows[i].role == .Crowd &&
+		p.rows[i].phase == .Active &&
 		!p.rows[i].served &&
 		p.rows[i].state != .Celebrating &&
 		p.rows[i].subbehavior == .None
+}
+
+is_crowd_row :: proc(p: ^People, i: int) -> bool {
+	return i >= 0 && i < p.crowd_count
 }

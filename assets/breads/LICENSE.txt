@@ -1,0 +1,13 @@
+License
+Standard Asset License (Commercial Use Allowed)
+By purchasing or downloading this asset pack, you agree to the following terms:
+
+🟢 Permitted Uses (Allowed):
+Commercial & Non-Commercial Games: You may use these assets in any of your personal or commercial game projects, applications, or animations.
+
+In-Game Alterations: You are allowed to edit, crop, resize, or recolor the assets to fit your game's visual style.
+
+🔴 Prohibited Uses (Strictly Forbidden):
+No Redistribution or Resale: You cannot resell, redistribute, sub-license, share, or give away these assets (whether modified or unmodified) as standalone files, part of an asset pack, or in any asset store/marketplace.
+
+No AI Training: You are strictly prohibited from using these assets, in whole or in part, to train artificial intelligence (AI), machine learning models, or generative image algorithms.

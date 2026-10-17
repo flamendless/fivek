@@ -28,6 +28,8 @@ start_run :: proc(g: ^Game, continue_save: bool) {
 	g.bg = nil
 	delete(g.served_bits)
 	g.served_bits = nil
+	delete(g.apostle_bits)
+	g.apostle_bits = nil
 
 	seed := g.seed
 	if g.seed_len > 0 {
@@ -54,14 +56,18 @@ start_run :: proc(g: ^Game, continue_save: bool) {
 	g.world_width = g.level.width
 	g.ground = w.init_ground(g.world_width, g.game_size.y)
 	g.people = person.init_people(g.level.spawn, g.game_size.x, ground_y)
-	g.person_count = len(g.people.rows)
+	person.spawn_apostles(g.people, g.game_size.x, ground_y)
+	g.person_count = g.people.crowd_count
 
 	bit_len := served_bit_bytes(g.person_count)
 	g.served_bits = make([]u8, bit_len)
+	apostle_len := apostle_bit_bytes()
+	g.apostle_bits = make([]u8, apostle_len)
 
 	if continue_save {
-		load_save(g.save_path, seed, g.person_count, g.served_bits)
+		load_save(g.save_path, seed, g.person_count, g.served_bits, g.apostle_bits)
 		person.apply_served_bits(g.people, g.served_bits)
+		person.apply_apostle_bits(g.people, g.apostle_bits)
 	}
 
 	g.player = player.init({PLAYER_START_X, 0}, g.defs.player_speed)

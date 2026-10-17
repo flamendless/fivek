@@ -12,3 +12,5 @@ The following are used:
 # Assets
 
 - [Nature Landscape Free Pixel Art](https://free-game-assets.itch.io/nature-landscapes-free-pixel-art)
+- [16x16 freshwater and saltwater fish icons](https://pixel-late.itch.io/16x16-freshwater-and-saltwater-fish-icons) - icons combined into an atlas texture.
+- [Free Bread | 32x32 Pixel Art Bread Assets](https://yuu63.itch.io/free-bread-32x32-pixel-art-bread-assets)

@@ -21,7 +21,9 @@ init_window :: proc(g: ^Game) {
 	)
 
 	rl.SetTargetFPS(60)
-	rl.SetExitKey(.ESCAPE)
+	when ODIN_OS != .JS {
+		rl.SetExitKey(.ESCAPE)
+	}
 }
 
 close_window :: proc() {

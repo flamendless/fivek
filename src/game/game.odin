@@ -5,11 +5,14 @@ import "core:math"
 import rl "vendor:raylib"
 import "../config"
 import "../input"
+import "../food"
 import "../person"
 import "../player"
 import w "../world"
 
 Game_Mode :: enum {
+	Splash,
+	Disclaimer,
 	Title,
 	Playing,
 	Victory_March,
@@ -38,6 +41,7 @@ Game :: struct {
 	player: ^player.Player,
 
 	served_bits: []u8,
+	apostle_bits: []u8,
 	person_count: int,
 
 	camera: rl.Camera2D,
@@ -46,6 +50,8 @@ Game :: struct {
 	fish_was_down: bool,
 	bread_was_down: bool,
 	interact_index: int,
+	apostle_interact_index: int,
+	e_was_down: bool,
 
 	autoplay: bool,
 	autoplay_done: bool,
@@ -55,12 +61,18 @@ Game :: struct {
 	save_path: string,
 
 	bg: ^Parallax_BG,
+
+	splash_logo: rl.Texture2D,
+	intro_seen: bool,
+	splash_elapsed: f32,
+	disclaimer_elapsed: f32,
 }
 
 init :: proc(defs := Game_Defs{}) -> ^Game {
 	g := new(Game)
 	g.defs = defs
-	g.mode = .Title
+	g.mode = .Splash
+	g.intro_seen = load_intro_seen()
 	g.window_size = {
 		f32(config.GAME_VIEW_WIDTH),
 		f32(config.GAME_VIEW_HEIGHT),
@@ -78,7 +90,7 @@ init :: proc(defs := Game_Defs{}) -> ^Game {
 
 	g.seed = 12345
 	g.seed_len = write_seed_text(g.seed, &g.seed_text)
-	g.camera = init_game_camera(g.game_size, g.scale)
+	g.camera = init_game_camera(g.window_size, g.scale * config.GAME_WORLD_ZOOM)
 	g.ui_camera = init_ui_camera(g.scale)
 	g.save_path = SAVE_FILENAME
 
@@ -114,6 +126,10 @@ update :: proc(g: ^Game) {
 		}
 	}
 	switch g.mode {
+	case .Splash:
+		update_splash(g)
+	case .Disclaimer:
+		update_disclaimer(g)
 	case .Title:
 		update_title(g)
 	case .Playing:
@@ -132,6 +148,10 @@ draw :: proc(g: ^Game) {
 	rl.ClearBackground(rl.BLACK)
 
 	switch g.mode {
+	case .Splash:
+		draw_splash(g)
+	case .Disclaimer:
+		draw_disclaimer(g)
 	case .Title:
 		draw_title(g)
 	case .Playing:
@@ -154,6 +174,9 @@ close :: proc(g: ^Game) {
 	free(g.ground)
 	free(g.player)
 	free_parallax_bg(g.bg)
+	unload_intro_assets(g)
+	food.unload()
 	delete(g.served_bits)
+	delete(g.apostle_bits)
 	free(g)
 }

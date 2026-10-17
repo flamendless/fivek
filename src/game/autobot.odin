@@ -1,6 +1,5 @@
 package game
 
-import "core:math"
 import "../config"
 import "../input"
 import "../person"
@@ -8,94 +7,108 @@ import "../person"
 when config.IS_AUTOTEST {
 
 AUTOBOT_MOVE_DEADBAND :: 4.0
+AUTOBOT_SWEEP_PAD :: 12.0
 
-pick_nearest_unserved :: proc(g: ^Game, interactable_only: bool) -> int {
-	if g.people == nil {
-		return -1
-	}
-	player_cx := g.player.pos.x + g.player.size.x * 0.5
-	best := -1
-	best_dist: f32 = math.F32_MAX
-
-	for i in 0 ..< len(g.people.rows) {
-		if g.people.rows[i].served {
-			continue
-		}
-		if g.people.rows[i].phase != .Active {
-			continue
-		}
-		if interactable_only && !person.is_interactable(g.people, i) {
-			continue
-		}
-		cx := g.people.rows[i].pos_x + g.people.rows[i].size_w * 0.5
-		d := math.abs(cx - player_cx)
-		if d < best_dist {
-			best_dist = d
-			best = i
-		}
-	}
-	return best
+Autobot_Phase :: enum {
+	Fish_Right,
+	Bread_Left,
 }
 
-target_still_valid :: proc(g: ^Game, i: int) -> bool {
-	if i < 0 || g.people == nil || i >= len(g.people.rows) {
+autobot_phase: Autobot_Phase = .Fish_Right
+
+any_needs_food :: proc(g: ^Game) -> bool {
+	if g.people == nil {
 		return false
 	}
-	if g.people.rows[i].served {
+	for i in 0 ..< len(g.people.rows) {
+		if person.needs_food(g.people, i) {
+			return true
+		}
+	}
+	return false
+}
+
+any_needs_item :: proc(g: ^Game, item: person.Give_Item) -> bool {
+	if g.people == nil {
 		return false
 	}
-	if g.people.rows[i].phase != .Active {
-		return false
+	for i in 0 ..< len(g.people.rows) {
+		if !person.needs_food(g.people, i) {
+			continue
+		}
+		row := g.people.rows[i]
+		switch item {
+		case .Fish:
+			if !row.has_fish {
+				return true
+			}
+		case .Bread:
+			if !row.has_bread {
+				return true
+			}
+		}
 	}
-	return true
+	return false
+}
+
+person_chunk_bounds :: proc(g: ^Game) -> (left_x, right_x: f32, ok: bool) {
+	if g.level == nil {
+		return 0, 0, false
+	}
+	for c in g.level.chunks {
+		if c.person_count == 0 {
+			continue
+		}
+		if !ok {
+			left_x = c.x_min + AUTOBOT_SWEEP_PAD
+			ok = true
+		}
+		right_x = c.x_max - AUTOBOT_SWEEP_PAD
+	}
+	return left_x, right_x, ok
 }
 
 autobot_tick :: proc(g: ^Game) {
 	input.clear_movement()
 
-	if g.people == nil || g.player == nil {
+	if g.people == nil || g.player == nil || g.level == nil {
+		return
+	}
+	if !any_needs_food(g) {
 		return
 	}
 
-	if !target_still_valid(g, g.autobot_target) {
-		g.autobot_target = pick_nearest_unserved(g, true)
-		if g.autobot_target < 0 {
-			g.autobot_target = pick_nearest_unserved(g, false)
-		}
-	}
-	target := g.autobot_target
-	if target < 0 {
+	left_x, right_x, bounds_ok := person_chunk_bounds(g)
+	if !bounds_ok {
 		return
 	}
 
-	row := &g.people.rows[target]
-	player_cx := g.player.pos.x + g.player.size.x * 0.5
-	person_cx := row.pos_x + row.size_w * 0.5
-	dx := person_cx - player_cx
+	radius := g.defs.interact_radius
+	pos := g.player.pos
+	size := g.player.size
+	player_cx := pos.x + size.x * 0.5
 
-	if math.abs(dx) > AUTOBOT_MOVE_DEADBAND {
-		if dx > 0 {
+	switch autobot_phase {
+	case .Fish_Right:
+		person.give_item_in_contact(g.people, pos, size, radius, .Fish)
+		if !any_needs_item(g, .Fish) {
+			autobot_phase = .Bread_Left
+		} else if player_cx >= right_x - AUTOBOT_MOVE_DEADBAND {
+			autobot_phase = .Bread_Left
+		} else {
 			input.set_down(.D, true)
+			input.set_down(.LEFT_SHIFT, true)
+		}
+	case .Bread_Left:
+		person.give_item_in_contact(g.people, pos, size, radius, .Bread)
+		if !any_needs_item(g, .Bread) {
+			autobot_phase = .Fish_Right
+		} else if player_cx <= left_x + AUTOBOT_MOVE_DEADBAND {
+			autobot_phase = .Fish_Right
 		} else {
 			input.set_down(.A, true)
+			input.set_down(.LEFT_SHIFT, true)
 		}
-		input.set_down(.LEFT_SHIFT, true)
-	}
-
-	nearest := person.nearest_interact_index(
-		g.people,
-		g.player.pos,
-		g.player.size,
-		g.defs.interact_radius,
-	)
-	if nearest != target {
-		return
-	}
-
-	if !row.has_fish {
-		input.press(.F)
-	} else if !row.has_bread {
-		input.press(.B)
 	}
 }
 
