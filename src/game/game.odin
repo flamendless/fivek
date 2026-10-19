@@ -1,9 +1,11 @@
 package game
 
 import "core:fmt"
+import "core:log"
 import "core:math"
 import rl "vendor:raylib"
 import "../config"
+import "../currency"
 import "../input"
 import "../food"
 import "../person"
@@ -14,85 +16,124 @@ Game_Mode :: enum {
 	Splash,
 	Disclaimer,
 	Title,
+	Tutorial,
 	Playing,
 	Victory_March,
 	Victory_Lineup,
 	Credits,
 }
 
-Game :: struct {
-	defs: Game_Defs,
-	mode: Game_Mode,
-	frame: int,
-
+Game_View :: struct {
 	window_size: rl.Vector2,
-	game_size: rl.Vector2,
-	scale: f32,
-	ui_scale: f32,
+	game_size:   rl.Vector2,
+	scale:       f32,
+	ui_scale:    f32,
 	world_width: f32,
+}
 
-	seed: u64,
-	seed_text: [32]u8,
-	seed_len: int,
+Game_Seed :: struct {
+	value: u64,
+	text:  [32]u8,
+	len:   int,
+}
 
-	level: ^w.World,
+Game_Scene :: struct {
+	level:  ^w.World,
 	ground: ^w.Ground,
 	people: ^person.People,
 	player: ^player.Player,
+	bg:     ^Parallax_BG,
+}
 
-	served_bits: []u8,
-	apostle_bits: []u8,
-	person_count: int,
+Game_Run :: struct {
+	served_bits:    []u8,
+	apostle_bits:   []u8,
+	person_count:   int,
+	run_stats:      person.Run_Stats,
+	stats_pledged:  person.Run_Stats,
+	coins:          u32,
+	dropped_coins:  [dynamic]currency.Dropped_Coin,
+	play_time:      f32,
+	paused:         bool,
+}
 
-	camera: rl.Camera2D,
+Game_Cameras :: struct {
+	camera:    rl.Camera2D,
 	ui_camera: rl.Camera2D,
+}
 
-	fish_was_down: bool,
-	bread_was_down: bool,
-	interact_index: int,
-	apostle_interact_index: int,
-	e_was_down: bool,
+Game_Input :: struct {
+	fish_was_down:            bool,
+	bread_was_down:           bool,
+	interact_index:           int,
+	apostle_interact_index:   int,
+	e_was_down:               bool,
+}
 
-	autoplay: bool,
-	autoplay_done: bool,
-	autoplay_failed: bool,
+Game_Intro :: struct {
+	splash_logo:         rl.Texture2D,
+	intro_seen:          bool,
+	tutorial_seen:       bool,
+	tutorial_into_play:  bool,
+	splash_elapsed:      f32,
+	disclaimer_elapsed:  f32,
+}
+
+Game_Autotest :: struct {
+	autoplay:            bool,
+	autoplay_done:       bool,
+	autoplay_failed:     bool,
 	autoplay_max_frames: int,
-	autobot_target: int,
+	autobot_target:      int,
+}
+
+Game_Persist :: struct {
 	save_path: string,
+}
 
-	bg: ^Parallax_BG,
+Game :: struct {
+	defs:  Game_Defs,
+	mode:  Game_Mode,
+	frame: int,
 
-	splash_logo: rl.Texture2D,
-	intro_seen: bool,
-	splash_elapsed: f32,
-	disclaimer_elapsed: f32,
+	view:     Game_View,
+	seed:     Game_Seed,
+	scene:    Game_Scene,
+	run:      Game_Run,
+	cameras:  Game_Cameras,
+	input:    Game_Input,
+	intro:    Game_Intro,
+	autotest: Game_Autotest,
+	persist:  Game_Persist,
 }
 
 init :: proc(defs := Game_Defs{}) -> ^Game {
+	log.infof("initializing game (population target %d)", defs.target_population)
 	g := new(Game)
 	g.defs = defs
 	g.mode = .Splash
-	g.intro_seen = load_intro_seen()
-	g.window_size = {
+	g.intro.intro_seen = load_intro_seen()
+	g.intro.tutorial_seen = load_tutorial_seen()
+	g.view.window_size = {
 		f32(config.GAME_VIEW_WIDTH),
 		f32(config.GAME_VIEW_HEIGHT),
 	}
 	when config.IS_GAME_SIZE_SAME {
-		g.game_size = g.window_size
+		g.view.game_size = g.view.window_size
 	} else {
-		g.game_size = {480, 270}
+		g.view.game_size = {480, 270}
 	}
-	g.ui_scale = g.game_size.y / f32(config.UI_DESIGN_HEIGHT)
-	g.scale = math.min(
-		g.window_size.x / g.game_size.x,
-		g.window_size.y / g.game_size.y,
+	g.view.ui_scale = g.view.game_size.y / f32(config.UI_DESIGN_HEIGHT)
+	g.view.scale = math.min(
+		g.view.window_size.x / g.view.game_size.x,
+		g.view.window_size.y / g.view.game_size.y,
 	)
 
-	g.seed = 12345
-	g.seed_len = write_seed_text(g.seed, &g.seed_text)
-	g.camera = init_game_camera(g.window_size, g.scale * config.GAME_WORLD_ZOOM)
-	g.ui_camera = init_ui_camera(g.scale)
-	g.save_path = SAVE_FILENAME
+	g.seed.value = 12345
+	g.seed.len = write_seed_text(g.seed.value, &g.seed.text)
+	g.cameras.camera = init_game_camera(g.view.window_size, g.view.scale * config.GAME_WORLD_ZOOM)
+	g.cameras.ui_camera = init_ui_camera(g.view.scale)
+	g.persist.save_path = SAVE_FILENAME
 
 	return g
 }
@@ -113,7 +154,7 @@ loop :: proc(g: ^Game) {
 
 update :: proc(g: ^Game) {
 	when config.IS_AUTOTEST {
-		if !g.autoplay {
+		if !g.autotest.autoplay {
 			input.begin_frame()
 		}
 	} else {
@@ -121,9 +162,14 @@ update :: proc(g: ^Game) {
 	}
 	when config.IS_DEBUG {
 		if rl.IsKeyPressed(.R) {
-			debug_reload_new_seed(g)
+			debug_reload_current_state(g)
 			return
 		}
+	}
+	if g.mode == .Title {
+		title_fx_on_enter()
+	} else {
+		title_fx_on_leave()
 	}
 	switch g.mode {
 	case .Splash:
@@ -132,6 +178,8 @@ update :: proc(g: ^Game) {
 		update_disclaimer(g)
 	case .Title:
 		update_title(g)
+	case .Tutorial:
+		update_tutorial(g)
 	case .Playing:
 		update_playing(g)
 	case .Victory_March:
@@ -154,6 +202,8 @@ draw :: proc(g: ^Game) {
 		draw_disclaimer(g)
 	case .Title:
 		draw_title(g)
+	case .Tutorial:
+		draw_tutorial(g)
 	case .Playing:
 		draw_playing(g)
 	case .Victory_March:
@@ -169,14 +219,17 @@ draw :: proc(g: ^Game) {
 }
 
 close :: proc(g: ^Game) {
-	w.free_world(g.level)
-	person.free_people(g.people)
-	free(g.ground)
-	free(g.player)
-	free_parallax_bg(g.bg)
+	log.info("closing game")
+	title_fx_shutdown()
+	w.free_world(g.scene.level)
+	person.free_people(g.scene.people)
+	free(g.scene.ground)
+	free(g.scene.player)
+	free_parallax_bg(g.scene.bg)
 	unload_intro_assets(g)
+	unload_title_assets()
 	food.unload()
-	delete(g.served_bits)
-	delete(g.apostle_bits)
+	delete(g.run.served_bits)
+	delete(g.run.apostle_bits)
 	free(g)
 }

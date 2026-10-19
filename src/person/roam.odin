@@ -70,57 +70,57 @@ pick_move_duration :: proc(age: Person_Age, state: Person_State) -> f32 {
 }
 
 pick_roam_from_idle :: proc(p: ^People, i: int) {
-	next := pick_move_state(p.rows[i].age)
-	if next != .Idle && next == p.rows[i].last_roam {
-		reroll := pick_move_state(p.rows[i].age)
+	next := pick_move_state(p.rows[i].traits.age)
+	if next != .Idle && next == p.rows[i].motion.last_roam {
+		reroll := pick_move_state(p.rows[i].traits.age)
 		if reroll != .Idle {
 			next = reroll
 		}
-		if next == p.rows[i].last_roam {
+		if next == p.rows[i].motion.last_roam {
 			next = .Idle
 		}
 	}
 	if next == .Idle {
-		p.rows[i].timer = pick_idle_duration(p.rows[i].age)
+		p.rows[i].motion.timer = pick_idle_duration(p.rows[i].traits.age)
 		return
 	}
-	p.rows[i].state = next
-	p.rows[i].last_roam = next
-	p.rows[i].timer = pick_move_duration(p.rows[i].age, next)
+	p.rows[i].motion.state = next
+	p.rows[i].motion.last_roam = next
+	p.rows[i].motion.timer = pick_move_duration(p.rows[i].traits.age, next)
 	if rand.int_max(2) == 0 {
-		p.rows[i].dir = -1
+		p.rows[i].transform.dir = -1
 	} else {
-		p.rows[i].dir = 1
+		p.rows[i].transform.dir = 1
 	}
 }
 
 roam_to_idle :: proc(p: ^People, i: int) {
-	p.rows[i].state = .Idle
-	p.rows[i].timer = pick_idle_duration(p.rows[i].age)
+	p.rows[i].motion.state = .Idle
+	p.rows[i].motion.timer = pick_idle_duration(p.rows[i].traits.age)
 }
 
 roam_after_step :: proc(p: ^People, i: int) {
 	row := &p.rows[i]
-	legal_min := row.bound_min_x
-	legal_max := row.bound_max_x - row.size_w
+	legal_min := row.transform.bound_min_x
+	legal_max := row.transform.bound_max_x - row.transform.size_w
 	if legal_max < legal_min {
-		row.pos_x = (row.bound_min_x + row.bound_max_x) * 0.5 - row.size_w * 0.5
+		row.transform.pos_x = (row.transform.bound_min_x + row.transform.bound_max_x) * 0.5 - row.transform.size_w * 0.5
 		roam_to_idle(p, i)
 		return
 	}
-	prev_x := row.pos_x
-	row.pos_x = math.clamp(row.pos_x, legal_min, legal_max)
-	if row.pos_x == prev_x {
+	prev_x := row.transform.pos_x
+	row.transform.pos_x = math.clamp(row.transform.pos_x, legal_min, legal_max)
+	if row.transform.pos_x == prev_x {
 		return
 	}
-	if row.timer < WALL_IDLE_GRACE {
+	if row.motion.timer < WALL_IDLE_GRACE {
 		roam_to_idle(p, i)
 		return
 	}
-	if row.pos_x <= legal_min {
-		row.dir = 1
+	if row.transform.pos_x <= legal_min {
+		row.transform.dir = 1
 	} else {
-		row.dir = -1
+		row.transform.dir = -1
 	}
 }
 
@@ -134,5 +134,5 @@ person_move_speed :: proc(p: ^People, i: int, state: Person_State) -> f32 {
 	case .Idle, .Celebrating:
 		return 0
 	}
-	return base * p.rows[i].speed_scale
+	return base * p.rows[i].traits.speed_scale
 }

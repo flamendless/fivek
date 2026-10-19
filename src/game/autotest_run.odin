@@ -24,12 +24,12 @@ run_autotest :: proc() -> int {
 			seed = v
 		}
 	}
-	g.seed = seed
-	g.seed_len = write_seed_text(g.seed, &g.seed_text)
-	g.autoplay = true
-	g.autoplay_max_frames = AUTOTEST_POPULATION * FRAMES_PER_PERSON
-	g.autobot_target = -1
-	g.save_path = "save_autotest.bin"
+	g.seed.value = seed
+	g.seed.len = write_seed_text(g.seed.value, &g.seed.text)
+	g.autotest.autoplay = true
+	g.autotest.autoplay_max_frames = AUTOTEST_POPULATION * FRAMES_PER_PERSON
+	g.autotest.autobot_target = -1
+	g.persist.save_path = "save_autotest.bin"
 
 	init_window(g)
 
@@ -39,9 +39,9 @@ run_autotest :: proc() -> int {
 	served := served_count(g)
 	total := person_count(g)
 	frames := run_frame(g)
-	seed_out := g.seed
-	done := g.autoplay_done
-	failed := g.autoplay_failed
+	seed_out := g.seed.value
+	done := g.autotest.autoplay_done
+	failed := g.autotest.autoplay_failed
 
 	close_window()
 	close(g)

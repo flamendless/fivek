@@ -2,6 +2,7 @@ package config
 
 IS_DEBUG :: #config(DEBUG, false)
 IS_AUTOTEST :: #config(AUTOTEST, false)
+START_STATE :: #config(START_STATE, "")
 IS_GAME_SIZE_SAME :: #config(GAME_SIZE_SAME, true)
 VERSION :: #config(VERSION, "2026.10.15")
 

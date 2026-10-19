@@ -1,14 +1,28 @@
 package game
 
-import "core:fmt"
+import "core:log"
 import "core:math"
 import rl "vendor:raylib"
 
-PARALLAX_MAX :: 0.0
+PARALLAX_MAX :: 0.75
+PARALLAX_ZOOM :: 1.0
 
 BG_Set :: struct {
 	name: cstring,
 	layers: []cstring,
+}
+
+Parallax_Layer :: struct {
+	tex: rl.Texture2D,
+	tile_w: f32,
+	draw_h: f32,
+}
+
+Parallax_BG :: struct {
+	set_name: cstring,
+	layers: [dynamic]Parallax_Layer,
+	game_h: f32,
+	zoom:   f32,
 }
 
 @(private = "file")
@@ -64,33 +78,24 @@ BG_SETS := []BG_Set{
 	},
 }
 
-Parallax_Layer :: struct {
-	tex: rl.Texture2D,
-	tile_w: f32,
-	draw_h: f32,
-}
-
-Parallax_BG :: struct {
-	set_name: cstring,
-	layers: [dynamic]Parallax_Layer,
-	game_h: f32,
-}
-
 load_parallax_bg :: proc(seed: u64, game_h: f32) -> (^Parallax_BG, bool) {
 	if len(BG_SETS) == 0 {
 		return nil, false
 	}
 	set := BG_SETS[int(seed % u64(len(BG_SETS)))]
+	log.infof("loading parallax set %s (seed %d)", set.name, seed)
 	bg := new(Parallax_BG)
 	bg.set_name = set.name
 	bg.game_h = game_h
+	bg.zoom = PARALLAX_ZOOM
 
 	for path in set.layers {
 		tex := rl.LoadTexture(path)
 		if tex.id == 0 {
-			fmt.eprintf("background: failed to load %s\n", path)
+			log.errorf("failed to load parallax layer %s", path)
 			continue
 		}
+		log.infof("loading parallax layer %s", path)
 		rl.SetTextureFilter(tex, .POINT)
 		scale := game_h / f32(tex.height)
 		tile_w := f32(tex.width) * scale
@@ -108,6 +113,7 @@ free_parallax_bg :: proc(bg: ^Parallax_BG) {
 	if bg == nil {
 		return
 	}
+	log.infof("freeing parallax set %s", bg.set_name)
 	for &layer in bg.layers {
 		rl.UnloadTexture(layer.tex)
 	}
@@ -122,22 +128,27 @@ draw_parallax_bg :: proc(bg: ^Parallax_BG, cam_x: f32, view: rl.Rectangle) {
 	n := len(bg.layers)
 	denom := f32(max(n - 1, 1))
 
+	zoom := bg.zoom
+	if zoom <= 0 {
+		zoom = 1
+	}
+
 	for &layer, i in bg.layers {
-		// World-space tiles: camera pan already scrolls; extra scroll only for depth (0 = locked to gameplay).
-		t := (f32(i) / denom) * PARALLAX_MAX
-		scroll := cam_x * t
-		tile_w := layer.tile_w
+		depth := (f32(i) / denom) - 1.0
+		scroll := cam_x * depth * PARALLAX_MAX * zoom
+		tile_w := layer.tile_w * zoom
 		if tile_w <= 0 {
 			continue
 		}
-		y := bg.game_h - layer.draw_h
+		draw_h := layer.draw_h * zoom
+		y := bg.game_h - draw_h
 
 		first := int(math.floor((view.x + scroll) / tile_w)) - 1
 		last := int(math.ceil((view.x + view.width + scroll) / tile_w))
 		src := rl.Rectangle{0, 0, f32(layer.tex.width), f32(layer.tex.height)}
 		for ti in first ..= last {
 			x := f32(ti) * tile_w - scroll
-			dest := rl.Rectangle{x, y, tile_w, layer.draw_h}
+			dest := rl.Rectangle{x, y, tile_w, draw_h}
 			rl.DrawTexturePro(layer.tex, src, dest, {}, 0, rl.WHITE)
 		}
 	}

@@ -17,6 +17,7 @@ CELEBRATE_HOP_DURATION :: 0.12
 
 SAVE_FILENAME :: "save_fivek.bin"
 INTRO_PREFS_FILENAME :: "intro_seen.bin"
+GAME_DISPLAY_TITLE :: "Bread, Fish, Repeat 5000x"
 
 Game_Defs :: struct {
 	debug: bool,
@@ -34,7 +35,7 @@ get_defs :: proc() -> Game_Defs {
 	return Game_Defs{
 		debug = config.IS_DEBUG,
 		game_size_same = config.IS_GAME_SIZE_SAME,
-		title = "FiveK",
+		title = GAME_DISPLAY_TITLE,
 		version = config.VERSION,
 		target_population = config.TARGET_POPULATION,
 		chunk_pop_min = config.CHUNK_POP_MIN,

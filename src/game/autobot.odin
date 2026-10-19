@@ -17,11 +17,11 @@ Autobot_Phase :: enum {
 autobot_phase: Autobot_Phase = .Fish_Right
 
 any_needs_food :: proc(g: ^Game) -> bool {
-	if g.people == nil {
+	if g.scene.people == nil {
 		return false
 	}
-	for i in 0 ..< len(g.people.rows) {
-		if person.needs_food(g.people, i) {
+	for i in 0 ..< len(g.scene.people.rows) {
+		if person.needs_food(g.scene.people, i) {
 			return true
 		}
 	}
@@ -29,21 +29,21 @@ any_needs_food :: proc(g: ^Game) -> bool {
 }
 
 any_needs_item :: proc(g: ^Game, item: person.Give_Item) -> bool {
-	if g.people == nil {
+	if g.scene.people == nil {
 		return false
 	}
-	for i in 0 ..< len(g.people.rows) {
-		if !person.needs_food(g.people, i) {
+	for i in 0 ..< len(g.scene.people.rows) {
+		if !person.needs_food(g.scene.people, i) {
 			continue
 		}
-		row := g.people.rows[i]
+		row := g.scene.people.rows[i]
 		switch item {
 		case .Fish:
-			if !row.has_fish {
+			if !row.food.has_fish {
 				return true
 			}
 		case .Bread:
-			if !row.has_bread {
+			if !row.food.has_bread {
 				return true
 			}
 		}
@@ -52,10 +52,10 @@ any_needs_item :: proc(g: ^Game, item: person.Give_Item) -> bool {
 }
 
 person_chunk_bounds :: proc(g: ^Game) -> (left_x, right_x: f32, ok: bool) {
-	if g.level == nil {
+	if g.scene.level == nil {
 		return 0, 0, false
 	}
-	for c in g.level.chunks {
+	for c in g.scene.level.chunks {
 		if c.person_count == 0 {
 			continue
 		}
@@ -71,7 +71,7 @@ person_chunk_bounds :: proc(g: ^Game) -> (left_x, right_x: f32, ok: bool) {
 autobot_tick :: proc(g: ^Game) {
 	input.clear_movement()
 
-	if g.people == nil || g.player == nil || g.level == nil {
+	if g.scene.people == nil || g.scene.player == nil || g.scene.level == nil {
 		return
 	}
 	if !any_needs_food(g) {
@@ -83,14 +83,15 @@ autobot_tick :: proc(g: ^Game) {
 		return
 	}
 
-	radius := g.defs.interact_radius
-	pos := g.player.pos
-	size := g.player.size
+	bonuses := person.party_bonuses(g.scene.people)
+	radius := g.defs.interact_radius + bonuses.interact_radius_add
+	pos := g.scene.player.pos
+	size := g.scene.player.size
 	player_cx := pos.x + size.x * 0.5
 
 	switch autobot_phase {
 	case .Fish_Right:
-		person.give_item_in_contact(g.people, pos, size, radius, .Fish)
+		person.give_item_in_contact(g.scene.people, pos, size, radius, .Fish, &g.run.run_stats)
 		if !any_needs_item(g, .Fish) {
 			autobot_phase = .Bread_Left
 		} else if player_cx >= right_x - AUTOBOT_MOVE_DEADBAND {
@@ -100,7 +101,7 @@ autobot_tick :: proc(g: ^Game) {
 			input.set_down(.LEFT_SHIFT, true)
 		}
 	case .Bread_Left:
-		person.give_item_in_contact(g.people, pos, size, radius, .Bread)
+		person.give_item_in_contact(g.scene.people, pos, size, radius, .Bread, &g.run.run_stats)
 		if !any_needs_item(g, .Bread) {
 			autobot_phase = .Fish_Right
 		} else if player_cx <= left_x + AUTOBOT_MOVE_DEADBAND {

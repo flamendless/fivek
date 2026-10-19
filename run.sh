@@ -9,20 +9,36 @@ OUT_AUTOTEST="${ROOT}/fivek_autotest"
 WEB_DIR="${ROOT}/web"
 OUT_WASM_OBJ="${WEB_DIR}/game.wasm.o"
 INDEX_SHELL="${WEB_DIR}/index_shell.html"
+FIVEK_STORAGE_JS="${WEB_DIR}/fivek_storage.js"
+WEB_SAVE_KEY="fivek:save_fivek.bin"
 
 usage() {
 	cat <<'EOF'
 Usage: ./run.sh <command> [args...]
 
 Commands:
-  run          Build and run the game
-  autotest     Build and run headless autoplay test
-  build        Build native game binary only
-  check        Type-check game and autotest entrypoints
-  wasm         Build WebAssembly for the browser (needs emcc)
-  wasm-deps    Install wasm toolchain (lld, emsdk, raylib wasm libs)
-  wasm-run     Build wasm and serve web/
+	run          Build and run the game (STATE=splash|disclaimer|title|play to skip intro flow)
+	autotest     Build and run headless autoplay test
+	build        Build native game binary only
+	check        Type-check game and autotest entrypoints
+	wasm         Build WebAssembly for the browser (needs emcc)
+	wasm-deps    Install wasm toolchain (lld, emsdk, raylib wasm libs)
+	wasm-run     Build wasm and serve web/
+	clear-save   Remove native save files; hint for clearing browser save
 EOF
+}
+
+clear_save() {
+	local removed=0
+	for f in save_fivek.bin save_autotest.bin; do
+		if [[ -f "${ROOT}/${f}" ]]; then
+			rm -f "${ROOT}/${f}"
+			echo "removed ${f}"
+			removed=1
+		fi
+	done
+	[[ "${removed}" -eq 1 ]] || echo "no native save files found"
+	echo "wasm: open your dev server with ?clearSave=1 (clears localStorage ${WEB_SAVE_KEY})"
 }
 
 build_game() {
@@ -152,11 +168,15 @@ build_wasm() {
 		"${OUT_WASM_OBJ}" \
 		"${odin_root}/vendor/raylib/wasm/libraylib.web.a" \
 		"${odin_root}/vendor/raylib/wasm/libraygui.a" \
+		--js-library "${FIVEK_STORAGE_JS}" \
 		-sUSE_GLFW=3 \
 		-sASYNCIFY \
 		-sWARN_ON_UNDEFINED_SYMBOLS=0 \
 		--preload-file "${ROOT}/assets/bg@assets/bg" \
+		--preload-file "${ROOT}/assets/patterns@assets/patterns" \
 		--preload-file "${ROOT}/assets/flamendless_logo.png@assets/flamendless_logo.png" \
+		--preload-file "${ROOT}/assets/social@assets/social" \
+		--preload-file "${ROOT}/assets/fonts/sholom@assets/fonts/sholom" \
 		--shell-file "${INDEX_SHELL}"
 
 	rm -f "${OUT_WASM_OBJ}"
@@ -171,7 +191,11 @@ shift
 
 case "${cmd}" in
 	run)
-		build_game -define:DEBUG=true
+		run_build_args=(-define:DEBUG=true)
+		if [[ -n "${STATE:-}" ]]; then
+			run_build_args+=(-define:START_STATE="${STATE}")
+		fi
+		build_game "${run_build_args[@]}"
 		exec "${OUT_GAME}" "$@"
 		;;
 	autotest)
@@ -192,10 +216,14 @@ case "${cmd}" in
 	wasm-deps)
 		install_wasm_deps
 		;;
+	clear-save)
+		clear_save
+		;;
 	wasm-run)
 		build_wasm
 		port="${1:-5555}"
 		echo "Serving ${WEB_DIR} at http://localhost:${port}/"
+		echo "Clear wasm save: http://localhost:${port}/?clearSave=1"
 		exec python3 -m http.server "${port}" --directory "${WEB_DIR}"
 		;;
 	-h | --help | help)

@@ -1,9 +1,11 @@
 package main
 
-import "core:fmt"
+import "core:log"
 import "config"
 import "game"
+import "currency"
 import "food"
+import "ui"
 
 when config.IS_AUTOTEST {
 	main :: proc() {
@@ -11,27 +13,51 @@ when config.IS_AUTOTEST {
 	}
 } else {
 	main :: proc() {
-		fmt.println("Checking defs...")
+		when ODIN_OS != .JS {
+			context.logger = log.create_console_logger()
+		}
+		log.info("checking defs")
 		defs := game.get_defs()
-		fmt.println(defs)
+		log.infof("%v", defs)
 
-		fmt.println("Initializing game...")
+		log.info("initializing game")
 		g := game.init(defs)
 		defer {
-			fmt.println("Closing game...")
+			log.info("closing game")
 			game.close(g)
 		}
-		fmt.println(g)
+		log.infof("%v", g)
 
-		fmt.println("Initializing window...")
+		log.info("initializing window")
 		game.init_window(g)
+
+		log.info("loading intro assets")
 		game.load_intro_assets(g)
+
+		log.info("loading title assets")
+		game.load_title_assets()
+
+		log.info("loading food")
 		food.load()
+
+		log.info("loading currency")
+		currency.load()
+
+		log.info("loading UI")
+		ui.load()
+
 		defer {
-			fmt.println("Closing window...")
+			log.info("unloading UI")
+			ui.unload()
+			log.info("unloading currency")
+			currency.unload()
+			log.info("closing window")
 			game.close_window()
 		}
 
+		when config.IS_DEBUG {
+			game.apply_launch_state(g)
+		}
 		game.loop(g)
 	}
 }

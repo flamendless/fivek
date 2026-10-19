@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="icon" href="data:,">
-	<title>FiveK</title>
+	<title>Bread, Fish, Repeat 5000x</title>
 	<style>
 		html, body {
 			margin: 0;
@@ -27,6 +27,12 @@
 		onkeydown="event.preventDefault()"></canvas>
 	<script src="odin.js"></script>
 	<script>
+		const SAVE_KEY = "fivek:save_fivek.bin";
+		if (new URLSearchParams(location.search).has("clearSave")) {
+			localStorage.removeItem(SAVE_KEY);
+			history.replaceState(null, "", location.pathname);
+		}
+
 		var odinMemoryInterface = new odin.WasmMemoryInterface();
 		odinMemoryInterface.setIntSize(4);
 		var odinImports = odin.setupDefaultImports(odinMemoryInterface);

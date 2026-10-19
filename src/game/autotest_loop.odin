@@ -23,22 +23,22 @@ loop_until_credits :: proc(g: ^Game) -> bool {
 		if g.mode == .Credits {
 			return true
 		}
-		if g.autoplay_max_frames > 0 && g.frame >= g.autoplay_max_frames {
-			g.autoplay_failed = true
+		if g.autotest.autoplay_max_frames > 0 && g.frame >= g.autotest.autoplay_max_frames {
+			g.autotest.autoplay_failed = true
 			return false
 		}
 	}
 }
 
 served_count :: proc(g: ^Game) -> int {
-	if g.people == nil {
+	if g.scene.people == nil {
 		return 0
 	}
-	return person.count_served(g.people)
+	return person.count_served(g.scene.people)
 }
 
 person_count :: proc(g: ^Game) -> int {
-	return g.person_count
+	return g.run.person_count
 }
 
 run_frame :: proc(g: ^Game) -> int {

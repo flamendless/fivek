@@ -15,6 +15,12 @@ STAMINA_MAX :: 3.0
 STAMINA_REGEN :: 0.35
 EXHAUST_FLASH_HZ :: 8.0
 
+Player_Modifiers :: struct {
+	speed_mult: f32,
+	stamina_max: f32,
+	stamina_regen: f32,
+}
+
 Player :: struct {
 	pos: rl.Vector2,
 	size: rl.Vector2,
@@ -23,6 +29,14 @@ Player :: struct {
 	stamina: f32,
 	exhausted: bool,
 	facing: f32,
+}
+
+player_modifiers_default :: proc() -> Player_Modifiers {
+	return {
+		speed_mult = 1.0,
+		stamina_max = STAMINA_MAX,
+		stamina_regen = STAMINA_REGEN,
+	}
 }
 
 init :: proc(pos: rl.Vector2, speed: f32) -> ^Player {
@@ -41,7 +55,17 @@ exhaust_flash_on :: proc() -> bool {
 	return i32(rl.GetTime() * EXHAUST_FLASH_HZ) % 2 == 0
 }
 
-update :: proc(p: ^Player, ground: ^world.Ground, world_width: f32, dt: f32) {
+update :: proc(
+	p: ^Player,
+	ground: ^world.Ground,
+	world_width: f32,
+	mods: Player_Modifiers,
+	dt: f32,
+) -> f32 {
+	if p.stamina > mods.stamina_max {
+		p.stamina = mods.stamina_max
+	}
+
 	move_x: f32
 
 	if input.key_down(.A) || input.key_down(.LEFT) {
@@ -56,7 +80,7 @@ update :: proc(p: ^Player, ground: ^world.Ground, world_width: f32, dt: f32) {
 	speed_mult: f32 = 1.0
 	when config.IS_AUTOTEST || config.IS_DEBUG {
 		p.exhausted = false
-		p.stamina = STAMINA_MAX
+		p.stamina = mods.stamina_max
 		if shift && move_x != 0 {
 			when config.IS_DEBUG {
 				speed_mult = DEBUG_SPRINT_MULT
@@ -77,9 +101,9 @@ update :: proc(p: ^Player, ground: ^world.Ground, world_width: f32, dt: f32) {
 					p.stamina = 0
 				}
 			} else {
-				p.stamina += STAMINA_REGEN * dt
-				if p.stamina > STAMINA_MAX {
-					p.stamina = STAMINA_MAX
+				p.stamina += mods.stamina_regen * dt
+				if p.stamina > mods.stamina_max {
+					p.stamina = mods.stamina_max
 				}
 			}
 		}
@@ -89,11 +113,13 @@ update :: proc(p: ^Player, ground: ^world.Ground, world_width: f32, dt: f32) {
 		p.facing = move_x
 	}
 
-	p.pos.x += move_x * p.speed * speed_mult * dt
+	prev_x := p.pos.x
+	p.pos.x += move_x * p.speed * mods.speed_mult * speed_mult * dt
 	p.pos.x = math.clamp(p.pos.x, 0, world_width - p.size.x)
 
 	p.pos.y = ground.top_y - p.size.y
 	sync_bounds(p)
+	return math.abs(p.pos.x - prev_x)
 }
 
 sync_bounds :: proc(p: ^Player) {

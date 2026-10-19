@@ -5,6 +5,7 @@ import "core:math"
 import "core:math/rand"
 import rl "vendor:raylib"
 import "../config"
+import "../theme"
 
 PERSON_MARGIN :: 4
 ROAM_MIN_EXTRA :: 8.0
@@ -211,6 +212,36 @@ generate_world :: proc(params: World_Params) -> ^World {
 	return w
 }
 
+chunk_index_at_x :: proc(w: ^World, x: f32) -> int {
+	if w == nil || len(w.chunks) == 0 {
+		return 0
+	}
+	for c in w.chunks {
+		if x >= c.x_min && x < c.x_max {
+			return c.index
+		}
+	}
+	if x < w.chunks[0].x_min {
+		return 0
+	}
+	return w.chunks[len(w.chunks) - 1].index
+}
+
+chunk_center_x :: proc(w: ^World, idx: int) -> f32 {
+	if w == nil || idx < 0 || idx >= len(w.chunks) {
+		return 0
+	}
+	c := w.chunks[idx]
+	return (c.x_min + c.x_max) * 0.5
+}
+
+chunk_clamp_index :: proc(w: ^World, idx: int) -> int {
+	if w == nil || len(w.chunks) == 0 {
+		return 0
+	}
+	return math.clamp(idx, 0, len(w.chunks) - 1)
+}
+
 free_world :: proc(w: ^World) {
 	if w == nil {
 		return
@@ -221,7 +252,7 @@ free_world :: proc(w: ^World) {
 }
 
 when config.IS_DEBUG {
-	// label_screen_px: on-screen size at zoom 1; world_zoom: g.camera.zoom (game world camera).
+	// label_screen_px: on-screen size at zoom 1; world_zoom: g.cameras.camera.zoom (game world camera).
 	debug_draw_chunks :: proc(
 		w: ^World,
 		ground: ^Ground,
@@ -235,9 +266,9 @@ when config.IS_DEBUG {
 		for c in w.chunks {
 			chunk_w := c.x_max - c.x_min
 			rect := rl.Rectangle{c.x_min, ground.top_y, chunk_w, ground.size.y}
-			outline := rl.Color{0, 220, 255, 220}
+			outline := theme.CHUNK_OUTLINE
 			if c.index % 2 != 0 {
-				outline = rl.Color{255, 200, 64, 220}
+				outline = theme.CHUNK_OUTLINE_ACTIVE
 			}
 			rl.DrawRectangleLinesEx(rect, 1, outline)
 
@@ -247,7 +278,7 @@ when config.IS_DEBUG {
 			cx := c.x_min + chunk_w * 0.5
 			tx := i32(cx - tw * 0.5)
 			ty := i32(ground.top_y + 4)
-			rl.DrawRectangle(tx - 1, ty - 1, i32(tw) + 2, label_font + 2, {0, 0, 0, 150})
+			rl.DrawRectangle(tx - 1, ty - 1, i32(tw) + 2, label_font + 2, theme.OVERLAY_SCRIM_150)
 			rl.DrawText(label, tx, ty, label_font, rl.WHITE)
 		}
 	}
