@@ -123,7 +123,14 @@ draw_apostle_debug_inspector :: proc(
 			lines[n] = "--- detail ---"
 			n += 1
 			if n < len(lines) {
-				lines[n] = fmt.ctprintf("sub %v  rej:%.2f  a:%.2f", row.behavior.subbehavior, row.behavior.reject_flash, row.traits.draw_alpha)
+				rej := int(p.apostle_reject_speech[int(row.identity.apostle_idx)])
+				lines[n] = fmt.ctprintf(
+					"sub %v  rej:%d show:%v  a:%.2f",
+					row.behavior.subbehavior,
+					rej,
+					row.behavior.reject_speech_show,
+					row.traits.draw_alpha,
+				)
 				n += 1
 			}
 			if n < len(lines) {

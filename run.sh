@@ -17,7 +17,7 @@ usage() {
 Usage: ./run.sh <command> [args...]
 
 Commands:
-	run          Build and run the game (STATE=splash|disclaimer|title|play to skip intro flow)
+	run          Build and run the game (STATE=splash|disclaimer|title|credits|play to skip intro flow)
 	autotest     Build and run headless autoplay test
 	build        Build native game binary only
 	check        Type-check game and autotest entrypoints

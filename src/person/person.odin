@@ -139,8 +139,7 @@ Person_Food :: struct {
 Person_Behavior :: struct {
 	subbehavior: Person_Subbehavior,
 	flee_remaining: f32,
-	reject_flash: f32,
-	pending_coin_drop: bool,
+	reject_speech_show: bool,
 }
 
 Person_Identity :: struct {
@@ -201,6 +200,7 @@ People :: struct {
 	lineup: People_Lineup,
 	party: People_Party,
 	apostle_requirements: [APOSTLE_COUNT]Apostle_Requirements,
+	apostle_reject_speech: [APOSTLE_COUNT]u8,
 	run_stats: ^Run_Stats,
 	coin_drops: ^[dynamic]currency.Dropped_Coin,
 	escort: People_Escort,

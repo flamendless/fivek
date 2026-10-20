@@ -3,6 +3,7 @@ package game
 import "core:math"
 import rl "vendor:raylib"
 import "../config"
+import "../player"
 
 init_game_camera :: proc(window_size: rl.Vector2, scale: f32) -> rl.Camera2D {
 	return rl.Camera2D{
@@ -37,9 +38,20 @@ camera_target_y_for_focus :: proc(focus_y: f32, offset_y: f32, zoom: f32) -> f32
 	return mid + (focus_y - mid) * (1.0 - 1.0 / zoom)
 }
 
+active_game_player :: proc(g: ^Game) -> ^player.Player {
+	if g.mode == .Tutorial && g.tutorial.player != nil {
+		return g.tutorial.player
+	}
+	return g.scene.player
+}
+
 update_camera :: proc(g: ^Game) {
-	player_cx := g.scene.player.pos.x + g.scene.player.size.x * 0.5
-	player_cy := g.scene.player.pos.y + g.scene.player.size.y * 0.5
+	pl := active_game_player(g)
+	if pl == nil {
+		return
+	}
+	player_cx := pl.pos.x + pl.size.x * 0.5
+	player_cy := pl.pos.y + pl.size.y * 0.5
 	g.cameras.camera.target.x = player_cx
 	g.cameras.camera.target.y = camera_target_y_for_focus(
 		player_cy,

@@ -13,10 +13,11 @@ apply_launch_state :: proc(g: ^Game) {
 	case "title":
 		g.mode = .Title
 	case "tutorial":
-		g.tutorial.into_play = false
-		g.mode = .Tutorial
+		enter_tutorial(g, false)
 	case "disclaimer":
 		enter_disclaimer(g)
+	case "credits":
+		enter_credits(g, false)
 	case "splash":
 		return
 	case:

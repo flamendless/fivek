@@ -3,24 +3,6 @@ package theme
 import "core:math/rand"
 import rl "vendor:raylib"
 
-Pattern_Bg :: enum {
-	Cream_Paper,
-	Warm_Sand,
-	Cool_Mist,
-	Warm_Stone,
-	Soft_Sage,
-	Light_Peach,
-}
-
-PATTERN_BG_COLORS: [Pattern_Bg]rl.Color = {
-	.Cream_Paper = {236, 228, 210, 255},
-	.Warm_Sand   = {245, 235, 215, 255},
-	.Cool_Mist   = {220, 228, 235, 255},
-	.Warm_Stone  = {228, 222, 214, 255},
-	.Soft_Sage   = {224, 232, 218, 255},
-	.Light_Peach = {245, 228, 218, 255},
-}
-
 PATTERN_DARK_BG :: rl.Color{32, 28, 24, 255}
 
 TEXT_INK :: rl.Color{0, 0, 0, 255}
@@ -48,19 +30,22 @@ CHUNK_OUTLINE_ACTIVE :: rl.Color{255, 200, 64, 220}
 
 SOCIAL_ICON_HOVER :: rl.Color{255, 140, 140, 255}
 
-APOSTLE_IDENTITY_COLORS: [12]rl.Color = {
-	{220, 60, 60, 255},
-	{230, 120, 50, 255},
-	{230, 190, 40, 255},
-	{180, 210, 50, 255},
-	{80, 180, 70, 255},
-	{50, 170, 150, 255},
-	{60, 190, 220, 255},
-	{70, 110, 220, 255},
-	{90, 80, 200, 255},
-	{150, 80, 200, 255},
-	{200, 70, 180, 255},
-	{140, 30, 40, 255},
+Pattern_Bg :: enum {
+	Cream_Paper,
+	Warm_Sand,
+	Cool_Mist,
+	Warm_Stone,
+	Soft_Sage,
+	Light_Peach,
+}
+
+PATTERN_BG_COLORS: [Pattern_Bg]rl.Color = {
+	.Cream_Paper = {236, 228, 210, 255},
+	.Warm_Sand   = {245, 235, 215, 255},
+	.Cool_Mist   = {220, 228, 235, 255},
+	.Warm_Stone  = {228, 222, 214, 255},
+	.Soft_Sage   = {224, 232, 218, 255},
+	.Light_Peach = {245, 228, 218, 255},
 }
 
 pattern_bg_color :: proc(which: Pattern_Bg) -> rl.Color {

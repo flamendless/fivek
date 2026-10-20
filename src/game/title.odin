@@ -6,12 +6,10 @@ import "core:math/rand"
 import "core:os"
 import rl "vendor:raylib"
 import "../pattern_bg"
+import "../social"
 import "../theme"
 
 TITLE_FONT_PATH :: "assets/fonts/sholom/Sholom-Yz3J4.ttf"
-SOCIAL_ATLAS_PATH :: "assets/social/atlas.png"
-SOCIAL_CELL_SIZE: f32 : 32
-SOCIAL_ATLAS_COLS :: 11
 
 TITLE_HEADLINE_SHOLOM :: "Bread, Fish, Repeat"
 TITLE_HEADLINE_SUFFIX :: "5000x"
@@ -28,27 +26,17 @@ Title_Menu :: enum {
 	Primary,
 	Tutorial,
 	Settings,
+	Credits,
 	Exit,
-}
-
-Social_Link :: struct {
-	atlas_index: int,
-	url:        cstring,
-}
-
-SOCIAL_LINKS: [4]Social_Link = {
-	{1, "https://www.facebook.com/flamendlessstudio"},
-	{2, "https://x.com/flam8studio"},
-	{8, "https://www.youtube.com/@flamendless"},
-	{25, "https://flamendless.itch.io"},
 }
 
 Game_Title :: struct {
 	sholom:         rl.Font,
 	social_atlas:   rl.Texture2D,
 	settings_open:  bool,
-	hovered_menu:   int,
-	hovered_social: int,
+	hovered_menu:      int,
+	hovered_social:    int,
+	hovered_settings:  int,
 	pattern:        ^pattern_bg.Screen_Pattern,
 	fx:             Game_Title_Fx,
 }
@@ -76,14 +64,18 @@ load_title_assets :: proc(g: ^Game) {
 		}
 	}
 	if g.title.social_atlas.id == 0 {
-		log.infof("loading social atlas %s", SOCIAL_ATLAS_PATH)
-		g.title.social_atlas = rl.LoadTexture(SOCIAL_ATLAS_PATH)
+		log.infof("loading social atlas %s", social.ATLAS_PATH)
+		g.title.social_atlas = rl.LoadTexture(social.ATLAS_PATH)
 		if g.title.social_atlas.id != 0 {
 			rl.SetTextureFilter(g.title.social_atlas, .POINT)
 		} else {
-			log.warnf("failed to load social atlas %s", SOCIAL_ATLAS_PATH)
+			log.warnf("failed to load social atlas %s", social.ATLAS_PATH)
 		}
 	}
+	refresh_title_pattern(g)
+}
+
+refresh_title_pattern :: proc(g: ^Game) {
 	if g.title.pattern == nil {
 		p, ok := pattern_bg.create(title_pattern_config())
 		if !ok {
@@ -91,7 +83,15 @@ load_title_assets :: proc(g: ^Game) {
 		} else {
 			g.title.pattern = p
 		}
+		return
 	}
+	if !pattern_bg.set_config(g.title.pattern, title_pattern_config()) {
+		log.warn("title: failed to refresh pattern background")
+	}
+}
+
+pattern_screen_mode :: proc(mode: Game_Mode) -> bool {
+	return mode == .Title || mode == .Tutorial || mode == .Credits
 }
 
 unload_title_assets :: proc(g: ^Game) {
@@ -104,7 +104,7 @@ unload_title_assets :: proc(g: ^Game) {
 		g.title.sholom = {}
 	}
 	if g.title.social_atlas.id != 0 {
-		log.infof("unloading social atlas %s", SOCIAL_ATLAS_PATH)
+		log.infof("unloading social atlas %s", social.ATLAS_PATH)
 		rl.UnloadTexture(g.title.social_atlas)
 		g.title.social_atlas = {}
 	}
@@ -113,11 +113,7 @@ unload_title_assets :: proc(g: ^Game) {
 }
 
 reload_title_random :: proc(g: ^Game) {
-	if g.title.pattern != nil {
-		if !pattern_bg.set_config(g.title.pattern, title_pattern_config()) {
-			log.warn("title: failed to reload pattern background")
-		}
-	}
+	refresh_title_pattern(g)
 	title_fx_reset(g)
 }
 
@@ -261,239 +257,4 @@ title_run_primary :: proc(g: ^Game) {
 	} else {
 		enter_tutorial(g, true)
 	}
-}
-
-title_menu_action :: proc(g: ^Game, item: Title_Menu) {
-	switch item {
-	case .Primary:
-		title_run_primary(g)
-	case .Tutorial:
-		enter_tutorial(g, false)
-	case .Settings:
-		g.title.settings_open = true
-	case .Exit:
-		request_app_shutdown()
-	}
-}
-
-title_social_src :: proc(index: int) -> rl.Rectangle {
-	i := index - 1
-	col := i % SOCIAL_ATLAS_COLS
-	row := i / SOCIAL_ATLAS_COLS
-	return {
-		f32(col) * SOCIAL_CELL_SIZE,
-		f32(row) * SOCIAL_CELL_SIZE,
-		SOCIAL_CELL_SIZE,
-		SOCIAL_CELL_SIZE,
-	}
-}
-
-update_title :: proc(g: ^Game) {
-	dt := rl.GetFrameTime()
-	title_fx_update(g, dt, g.title.settings_open)
-
-	if g.title.settings_open {
-		if rl.IsKeyPressed(.ESCAPE) {
-			g.title.settings_open = false
-		}
-		return
-	}
-
-	mouse := ui_mouse_game_pos(g)
-	clicked := rl.IsMouseButtonPressed(.LEFT)
-	g.title.hovered_menu = -1
-	g.title.hovered_social = -1
-	for i in 0 ..< len(SOCIAL_LINKS) {
-		if _, ok := title_social_hit(g, SOCIAL_LINKS[i], mouse); ok {
-			g.title.hovered_social = i
-			break
-		}
-	}
-
-	if clicked {
-		for link in SOCIAL_LINKS {
-			if _, ok := title_social_hit(g, link, mouse); ok {
-				when ODIN_OS == .JS {
-					fivek_open_url(link.url)
-				} else {
-					rl.OpenURL(link.url)
-				}
-				return
-			}
-		}
-	}
-
-	menu_size := title_font_size(g, 20)
-	menu_spacing := title_char_spacing(g, 1)
-	menu_step := f32(ui_px(g, 28))
-	_, menu_y := title_menu_layout(g, menu_size, menu_spacing, menu_step)
-
-	items := [4]Title_Menu{.Primary, .Tutorial, .Settings, .Exit}
-	for item in items {
-		label := title_menu_label(item, g)
-		bounds := title_text_bounds(g, label, menu_y, menu_size, menu_spacing)
-		if rl.CheckCollisionPointRec(mouse, bounds) {
-			g.title.hovered_menu = int(item)
-			if clicked {
-				title_menu_action(g, item)
-				return
-			}
-		}
-		menu_y += menu_step
-	}
-
-	if rl.IsKeyPressed(.ENTER) {
-		title_run_primary(g)
-	}
-}
-
-title_menu_label :: proc(item: Title_Menu, g: ^Game) -> cstring {
-	switch item {
-	case .Primary:
-		return title_primary_label(g)
-	case .Tutorial:
-		return "Tutorial"
-	case .Settings:
-		return "Settings"
-	case .Exit:
-		return "Exit"
-	}
-	return ""
-}
-
-title_menu_layout :: proc(
-	g: ^Game,
-	menu_size, menu_spacing, menu_step: f32,
-) -> (
-	headline_bottom: f32,
-	menu_y: f32,
-) {
-	top := f32(ui_px(g, 32))
-	y := title_advance_headline_y(g, top)
-	headline_bottom = y
-	menu_y = y + f32(ui_px(g, 20))
-	return headline_bottom, menu_y
-}
-
-title_social_layout :: proc(g: ^Game) -> (x: f32, y: f32, size: f32, gap: f32) {
-	pad := f32(ui_px(g, 8))
-	size = f32(ui_px(g, 24))
-	gap = f32(ui_px(g, 4))
-	x = pad
-	y = g.view.game_size.y - pad - size
-	return x, y, size, gap
-}
-
-draw_title_pattern_bg :: proc(g: ^Game) {
-	if g.title.pattern != nil {
-		bounds := rl.Rectangle{0, 0, g.view.game_size.x, g.view.game_size.y}
-		pattern_bg.draw_grid(g.title.pattern, bounds, TITLE_PATTERN_CELLS_ACROSS)
-	}
-}
-
-title_social_hit :: proc(g: ^Game, link: Social_Link, mouse: rl.Vector2) -> (rl.Rectangle, bool) {
-	x, y, size, gap := title_social_layout(g)
-	for i in 0 ..< len(SOCIAL_LINKS) {
-		r := rl.Rectangle{x, y, size, size}
-		if link == SOCIAL_LINKS[i] {
-			return r, rl.CheckCollisionPointRec(mouse, r)
-		}
-		x += size + gap
-	}
-	return {}, false
-}
-
-draw_title :: proc(g: ^Game) {
-	headline_size := title_font_size(g, 28)
-	headline_spacing := title_char_spacing(g, 1)
-	menu_size := title_font_size(g, 20)
-	menu_spacing := title_char_spacing(g, 1)
-	menu_step := f32(ui_px(g, 28))
-
-	rl.BeginMode2D(g.cameras.ui_camera)
-
-	draw_title_pattern_bg(g)
-
-	title_fx_draw_fish(g)
-
-	top := f32(ui_px(g, 32))
-	headline_gap := f32(ui_px(g, 4))
-	y := top
-	title_draw_centered_outlined(g, TITLE_HEADLINE_SHOLOM, y, headline_size, headline_spacing, rl.WHITE, rl.BLACK)
-	m := title_measure(g, TITLE_HEADLINE_SHOLOM, headline_size, headline_spacing)
-	y += m.y + headline_gap
-	title_draw_centered_default_outlined(
-		g,
-		TITLE_HEADLINE_SUFFIX,
-		y,
-		TITLE_HEADLINE_SUFFIX_FONT_DESIGN,
-		rl.WHITE,
-		rl.BLACK,
-	)
-	m = title_measure_default(g, TITLE_HEADLINE_SUFFIX, TITLE_HEADLINE_SUFFIX_FONT_DESIGN)
-	y += m.y + headline_gap
-
-	_, menu_y := title_menu_layout(g, menu_size, menu_spacing, menu_step)
-	items := [4]Title_Menu{.Primary, .Tutorial, .Settings, .Exit}
-	for item in items {
-		label := title_menu_label(item, g)
-		color := rl.BLACK
-		if g.title.hovered_menu == int(item) {
-			color = rl.WHITE
-		}
-		title_draw_centered(g, label, menu_y, menu_size, menu_spacing, color)
-		menu_y += menu_step
-	}
-
-	if g.title.social_atlas.id != 0 {
-		sx, sy, ssize, sgap := title_social_layout(g)
-		for i in 0 ..< len(SOCIAL_LINKS) {
-			link := SOCIAL_LINKS[i]
-			src := title_social_src(link.atlas_index)
-			dest := rl.Rectangle{sx, sy, ssize, ssize}
-			tint := rl.WHITE
-			if g.title.hovered_social == i {
-				tint = theme.SOCIAL_ICON_HOVER
-			}
-			rl.DrawTexturePro(g.title.social_atlas, src, dest, {}, 0, tint)
-			if g.title.hovered_social == i {
-				outline_pad := f32(ui_px(g, 1))
-				outline := rl.Rectangle {
-					dest.x - outline_pad,
-					dest.y - outline_pad,
-					dest.width + outline_pad * 2,
-					dest.height + outline_pad * 2,
-				}
-				rl.DrawRectangleLinesEx(outline, f32(max(ui_px(g, 1), 1)), rl.RED)
-			}
-			sx += ssize + sgap
-		}
-	}
-
-	ver := fmt.ctprintf("build: v%s", g.defs.version)
-	ver_m := title_measure_default(g, ver, TITLE_VERSION_FONT_DESIGN)
-	ver_pad := f32(ui_px(g, 8))
-	ver_x := g.view.game_size.x - ver_m.x - ver_pad
-	ver_y := g.view.game_size.y - ver_m.y - ver_pad
-	ver_font := rl.GetFontDefault()
-	ver_size := f32(ui_font(g, TITLE_VERSION_FONT_DESIGN))
-	ver_spacing := title_char_spacing(g, 1)
-	rl.DrawTextEx(ver_font, ver, {ver_x, ver_y}, ver_size, ver_spacing, rl.RED)
-
-	if g.title.settings_open {
-		rl.DrawRectangle(0, 0, i32(g.view.game_size.x), i32(g.view.game_size.y), theme.OVERLAY_SCRIM_180)
-		settings_size := title_font_size(g, 24)
-		settings_spacing := title_char_spacing(g, 1)
-		block_gap := f32(ui_px(g, 12))
-		h_m := title_measure(g, "Settings", settings_size, settings_spacing)
-		b_m := title_measure(g, "Coming soon", menu_size, menu_spacing)
-		block_h := h_m.y + block_gap + b_m.y
-		sy := (g.view.game_size.y - block_h) * 0.5
-		title_draw_centered(g, "Settings", sy, settings_size, settings_spacing, rl.WHITE)
-		title_draw_centered(g, "Coming soon", sy + h_m.y + block_gap, menu_size, menu_spacing, rl.LIGHTGRAY)
-	}
-
-	title_fx_draw_bread(g)
-
-	rl.EndMode2D()
 }

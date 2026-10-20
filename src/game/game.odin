@@ -55,6 +55,7 @@ Game_Run :: struct {
 	dropped_coins:  [dynamic]currency.Dropped_Coin,
 	play_time:      f32,
 	paused:         bool,
+	persist_chunk:  int,
 }
 
 Game_Cameras :: struct {
@@ -93,6 +94,7 @@ Game :: struct {
 	frame: int,
 
 	view:     Game_View,
+	ui:       Game_UI,
 	seed:     Game_Seed,
 	scene:    Game_Scene,
 	run:      Game_Run,
@@ -102,6 +104,7 @@ Game :: struct {
 	splash:     Game_Splash,
 	disclaimer: Game_Disclaimer,
 	tutorial:   Game_Tutorial,
+	credits:    Game_Credits,
 	title:      Game_Title,
 	autotest:   Game_Autotest,
 	persist:  Game_Persist,
@@ -116,6 +119,9 @@ init :: proc(defs := Game_Defs{}) -> ^Game {
 	g.prefs.tutorial_seen = load_tutorial_seen()
 	g.title.hovered_menu = -1
 	g.title.hovered_social = -1
+	g.title.hovered_settings = -1
+	g.credits.hovered_asset = -1
+	g.credits.hovered_apostle = -1
 	g.view.window_size = {
 		f32(config.GAME_VIEW_WIDTH),
 		f32(config.GAME_VIEW_HEIGHT),
@@ -168,7 +174,8 @@ update :: proc(g: ^Game) {
 			return
 		}
 	}
-	if g.mode == .Title {
+	title_like := g.mode == .Title
+	if title_like {
 		title_fx_on_enter(g)
 	} else {
 		title_fx_on_leave(g)
@@ -191,7 +198,15 @@ update :: proc(g: ^Game) {
 	case .Credits:
 		update_credits(g)
 	}
+
+	if pattern_screen_mode(g.mode) && g.mode != pattern_screen_last_mode {
+		refresh_title_pattern(g)
+	}
+	pattern_screen_last_mode = g.mode
 }
+
+@(private = "file")
+pattern_screen_last_mode: Game_Mode = .Splash
 
 draw :: proc(g: ^Game) {
 	rl.BeginDrawing()
@@ -222,6 +237,8 @@ draw :: proc(g: ^Game) {
 
 close :: proc(g: ^Game) {
 	log.info("closing game")
+	credits_free_crowd(g)
+	tutorial_free_scene(g)
 	w.free_world(g.scene.level)
 	person.free_people(g.scene.people)
 	free(g.scene.ground)

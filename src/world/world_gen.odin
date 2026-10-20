@@ -212,6 +212,36 @@ generate_world :: proc(params: World_Params) -> ^World {
 	return w
 }
 
+spawn_flat_crowd :: proc(width: f32, ground_y: f32, count: int, seed: u64) -> #soa[]Spawn_Person {
+	rand.reset(seed)
+	spawn := make_soa_slice(#soa[]Spawn_Person, count) or_else panic("flat crowd spawn alloc failed")
+	margin := f32(PERSON_MARGIN)
+	chunk_lo := margin
+	chunk_hi := max(width - margin, chunk_lo + 8)
+	span := chunk_hi - chunk_lo
+
+	for i in 0 ..< count {
+		age := roll_age()
+		size_w, size_h := roll_size_for_age(age)
+		pos_y := ground_y - size_h
+		pos_span := max(span - size_w, 1)
+		pos_x := chunk_lo + f32(rand.int_max(int(pos_span)))
+
+		spawn[i] = Spawn_Person{
+			pos_x = pos_x,
+			pos_y = pos_y,
+			bound_min_x = chunk_lo,
+			bound_max_x = chunk_hi,
+			size_w = size_w,
+			size_h = size_h,
+			speed_scale = roll_speed_scale(),
+			age = age,
+			color = random_color(),
+		}
+	}
+	return spawn
+}
+
 chunk_index_at_x :: proc(w: ^World, x: f32) -> int {
 	if w == nil || len(w.chunks) == 0 {
 		return 0

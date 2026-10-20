@@ -10,12 +10,6 @@ HUD_COIN_ICON :: 0
 COIN_DROP_MAX :: 32
 COIN_SPIN_SPEED :: 4.0
 
-Dropped_Coin :: struct {
-	pos:  rl.Vector2,
-	icon: u8,
-	spin: f32,
-}
-
 COIN_PATHS: [COIN_ICON_COUNT]cstring = {
 	"assets/coins/1.png",
 	"assets/coins/2.png",
@@ -25,6 +19,12 @@ COIN_PATHS: [COIN_ICON_COUNT]cstring = {
 	"assets/coins/6.png",
 	"assets/coins/7.png",
 	"assets/coins/8.png",
+}
+
+Dropped_Coin :: struct {
+	pos:  rl.Vector2,
+	icon: u8,
+	spin: f32,
 }
 
 coin_tex: [COIN_ICON_COUNT]rl.Texture2D

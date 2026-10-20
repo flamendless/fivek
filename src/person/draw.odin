@@ -106,9 +106,6 @@ draw_people :: proc(p: ^People, view: rl.Rectangle) {
 			continue
 		}
 		col := p.rows[i].traits.color
-		if p.rows[i].identity.role == .Apostle && p.rows[i].behavior.reject_flash > 0 {
-			col = rl.RED
-		}
 		if p.rows[i].identity.role == .Apostle && p.rows[i].traits.draw_alpha < 1 {
 			col.a = u8(f32(col.a) * p.rows[i].traits.draw_alpha)
 		}

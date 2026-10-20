@@ -10,6 +10,7 @@ import "../theme"
 VICTORY_MARCH_DEADBAND :: 3.0
 
 begin_victory_march :: proc(g: ^Game) {
+	persist_run(g)
 	g.mode = .Victory_March
 	g.input.interact_index = -1
 
@@ -62,16 +63,13 @@ update_victory_march :: proc(g: ^Game) {
 
 update_victory_lineup :: proc(g: ^Game) {
 	if rl.IsKeyPressed(.ENTER) || rl.IsKeyPressed(.SPACE) {
-		g.mode = .Credits
+		enter_credits(g, true)
 	}
-	if rl.IsKeyPressed(.ESCAPE) {
+	mouse := ui_mouse_game_pos(g)
+	clicked := rl.IsMouseButtonPressed(.LEFT)
+	update_nav_button_hover(g, "Quit", mouse)
+	if nav_back_pressed() || nav_button_clicked(g, "Quit", mouse, clicked) {
 		request_app_shutdown()
-	}
-}
-
-update_credits :: proc(g: ^Game) {
-	if rl.IsKeyPressed(.ENTER) || rl.IsKeyPressed(.SPACE) || rl.IsKeyPressed(.ESCAPE) {
-		g.mode = .Title
 	}
 }
 
@@ -84,17 +82,7 @@ draw_victory_lineup_hint :: proc(g: ^Game) {
 		y: i32 = i32(g.view.game_size.y) - font - ui_px(g, 12)
 		rl.DrawRectangle(x - ui_px(g, 4), y - ui_px(g, 2), w + ui_px(g, 8), font + ui_px(g, 4), theme.OVERLAY_SCRIM_180)
 		rl.DrawText(msg, x, y, font, rl.WHITE)
+		draw_nav_button(g, "Quit")
 	rl.EndMode2D()
 }
 
-draw_credits :: proc(g: ^Game) {
-	title_font := ui_font(g, 20)
-	body_font := ui_font(g, 16)
-	x := ui_px(g, 40)
-	rl.BeginMode2D(g.cameras.ui_camera)
-		rl.DrawText("All fed. Thank you.", x, ui_px(g, 80), title_font, rl.WHITE)
-		rl.DrawText("Five thousand plus", x, ui_px(g, 110), body_font, rl.LIGHTGRAY)
-		rl.DrawText("fish and bread.", x, ui_px(g, 130), body_font, rl.LIGHTGRAY)
-		rl.DrawText("Enter - Title", x, ui_px(g, 180), body_font, rl.GRAY)
-	rl.EndMode2D()
-}

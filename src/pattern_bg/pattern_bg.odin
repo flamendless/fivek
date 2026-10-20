@@ -51,6 +51,23 @@ Config :: struct {
 	zoom:       f32,
 }
 
+Screen_Pattern :: struct {
+	config:          Config,
+	tex:             rl.Texture2D,
+	offset:          rl.Vector2,
+	loaded_variant:  Variant,
+	loaded_sub:      u8,
+}
+
+DEFAULT_CONFIG :: Config {
+	bg_color   = theme.PATTERN_DARK_BG,
+	variant    = .Checker,
+	subvariant = 1,
+	direction  = {1, 0},
+	speed      = 0,
+	zoom       = 1,
+}
+
 subvariant_count :: proc(variant: Variant) -> u8 {
 	return VARIANT_INFO[variant].sub_count
 }
@@ -67,23 +84,6 @@ random_subvariant :: proc(variant: Variant) -> u8 {
 random_direction :: proc() -> rl.Vector2 {
 	dirs := [4]rl.Vector2{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
 	return dirs[rand.int_max(len(dirs))]
-}
-
-DEFAULT_CONFIG :: Config {
-	bg_color   = theme.PATTERN_DARK_BG,
-	variant    = .Checker,
-	subvariant = 1,
-	direction  = {1, 0},
-	speed      = 0,
-	zoom       = 1,
-}
-
-Screen_Pattern :: struct {
-	config:          Config,
-	tex:             rl.Texture2D,
-	offset:          rl.Vector2,
-	loaded_variant:  Variant,
-	loaded_sub:      u8,
 }
 
 @(private = "file")

@@ -91,6 +91,7 @@ start_run :: proc(g: ^Game, continue_save: bool) {
 	}
 
 	g.scene.player = player.init({PLAYER_START_X, 0}, g.defs.player_speed)
+	sync_persist_chunk(g)
 
 	g.mode = .Playing
 	g.frame = 0
@@ -112,8 +113,11 @@ start_run :: proc(g: ^Game, continue_save: bool) {
 when config.IS_DEBUG {
 	debug_reload_current_state :: proc(g: ^Game) {
 		switch g.mode {
-		case .Splash, .Disclaimer, .Title, .Tutorial, .Credits:
+		case .Splash, .Disclaimer, .Title, .Credits:
 			reload_title_random(g)
+		case .Tutorial:
+			reload_title_random(g)
+			enter_tutorial(g, g.tutorial.into_play)
 		case .Playing, .Victory_March, .Victory_Lineup:
 			mode := g.mode
 			start_run(g, false)

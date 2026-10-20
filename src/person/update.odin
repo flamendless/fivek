@@ -16,9 +16,7 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		}
 		return
 	case .Run_Home:
-		try_spawn_pending_coin_drop(p, i)
 		if move_toward_target(p, i, dt) {
-			p.rows[i].behavior.pending_coin_drop = false
 			p.rows[i].motion.phase = .Gone
 			p.rows[i].motion.state = .Idle
 		}
@@ -91,7 +89,6 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 }
 
 update_people :: proc(p: ^People, view: rl.Rectangle, frame: int, dt: f32) {
-	tick_apostle_reject_flash(p, dt)
 	for i in 0 ..< len(p.rows) {
 		if p.rows[i].motion.phase == .Gone {
 			continue

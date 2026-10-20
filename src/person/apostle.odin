@@ -1,12 +1,8 @@
 package person
 
-import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
 import "../config"
-import "../food"
-import "../ui"
-import "../theme"
 import w "../world"
 
 APOSTLE_COUNT :: 12
@@ -16,192 +12,17 @@ APOSTLE_X_FRAC_HI: f32 = 0.75
 PARTY_GAP_BEHIND_PLAYER :: 8.0
 PARTY_MEMBER_GAP :: 2.0
 PARTY_TRAIL_MIN_STEP :: 2.0
-REJECT_FLASH_DURATION :: 0.4
+PETER_APOSTLE_IDX :: 0
+THOMAS_APOSTLE_IDX :: 6
+JUDAS_APOSTLE_IDX :: 11
 APOSTLE_LABEL_FONT :: 8
 BUBBLE_PAD :: 3.0
 REQ_NUM_GAP :: 4.0
-JUDAS_APOSTLE_IDX :: 11
-
-Apostle_Def :: struct {
-	name: cstring,
-	color: rl.Color,
-}
-
-Req_Tier :: enum {
-	Low,
-	High,
-	Judas,
-}
-
-Apostle_Rng :: struct {
-	state: u64,
-}
-
-APOSTLE_DEFS: [APOSTLE_COUNT]Apostle_Def = {
-	{"Peter", theme.APOSTLE_IDENTITY_COLORS[0]},
-	{"Andrew", theme.APOSTLE_IDENTITY_COLORS[1]},
-	{"James", theme.APOSTLE_IDENTITY_COLORS[2]},
-	{"John", theme.APOSTLE_IDENTITY_COLORS[3]},
-	{"Philip", theme.APOSTLE_IDENTITY_COLORS[4]},
-	{"Bartholomew", theme.APOSTLE_IDENTITY_COLORS[5]},
-	{"Thomas", theme.APOSTLE_IDENTITY_COLORS[6]},
-	{"Matthew", theme.APOSTLE_IDENTITY_COLORS[7]},
-	{"Jude", theme.APOSTLE_IDENTITY_COLORS[8]},
-	{"Thaddaeus", theme.APOSTLE_IDENTITY_COLORS[9]},
-	{"Simon", theme.APOSTLE_IDENTITY_COLORS[10]},
-	{"Judas", theme.APOSTLE_IDENTITY_COLORS[11]},
-}
-
-apostle_rng_init :: proc(seed: u64) -> Apostle_Rng {
-	return {state = seed != 0 ? seed : 1}
-}
-
-apostle_rng_u32 :: proc(r: ^Apostle_Rng) -> u32 {
-	r.state = r.state * 6364136223846793005 + 1
-	return u32(r.state >> 32)
-}
-
-roll_u32_inclusive :: proc(r: ^Apostle_Rng, lo, hi: u32) -> u32 {
-	if hi <= lo {
-		return lo
-	}
-	span := hi - lo + 1
-	return lo + apostle_rng_u32(r) % span
-}
-
-roll_stat_amount :: proc(r: ^Apostle_Rng, kind: Stat_Kind, tier: Req_Tier) -> u32 {
-	switch kind {
-	case .Total_Served:
-		switch tier {
-		case .Low:
-			return roll_u32_inclusive(r, 80, 200)
-		case .High:
-			return roll_u32_inclusive(r, 250, 600)
-		case .Judas:
-			return roll_u32_inclusive(r, 1800, 3500)
-		}
-	case .Fish_Given, .Bread_Given:
-		switch tier {
-		case .Low:
-			return roll_u32_inclusive(r, 60, 180)
-		case .High:
-			return roll_u32_inclusive(r, 200, 500)
-		case .Judas:
-			return roll_u32_inclusive(r, 500, 1000)
-		}
-	case .Fed_Kids:
-		switch tier {
-		case .Low:
-			return roll_u32_inclusive(r, 40, 120)
-		case .High:
-			return roll_u32_inclusive(r, 150, 350)
-		case .Judas:
-			return roll_u32_inclusive(r, 700, 1200)
-		}
-	case .Fed_Young:
-		switch tier {
-		case .Low:
-			return roll_u32_inclusive(r, 30, 100)
-		case .High:
-			return roll_u32_inclusive(r, 120, 280)
-		case .Judas:
-			return roll_u32_inclusive(r, 500, 900)
-		}
-	case .Fed_Adults:
-		switch tier {
-		case .Low:
-			return roll_u32_inclusive(r, 50, 150)
-		case .High:
-			return roll_u32_inclusive(r, 200, 450)
-		case .Judas:
-			return roll_u32_inclusive(r, 800, 1500)
-		}
-	case .Distance_Walked:
-		switch tier {
-		case .Low:
-			return roll_u32_inclusive(r, 3000, 8000)
-		case .High:
-			return roll_u32_inclusive(r, 10000, 25000)
-		case .Judas:
-			return roll_u32_inclusive(r, 40000, 80000)
-		}
-	}
-	return 0
-}
-
-pick_distinct_kinds :: proc(r: ^Apostle_Rng, n: int) -> [STAT_KIND_COUNT]Stat_Kind {
-	all := [STAT_KIND_COUNT]Stat_Kind {
-		.Total_Served,
-		.Fish_Given,
-		.Bread_Given,
-		.Fed_Kids,
-		.Fed_Young,
-		.Fed_Adults,
-		.Distance_Walked,
-	}
-	for i in 0 ..< STAT_KIND_COUNT {
-		j := i + int(apostle_rng_u32(r) % u32(STAT_KIND_COUNT - i))
-		all[i], all[j] = all[j], all[i]
-	}
-	out: [STAT_KIND_COUNT]Stat_Kind
-	for i in 0 ..< n {
-		out[i] = all[i]
-	}
-	return out
-}
-
-roll_apostle_requirements :: proc(seed: u64, slot: int) -> Apostle_Requirements {
-	mix := u64(slot + 1) * 0x9E3779B97F4A7C15
-	rng := apostle_rng_init(seed ~ mix)
-	out: Apostle_Requirements
-
-	if slot == JUDAS_APOSTLE_IDX {
-		kinds := pick_distinct_kinds(&rng, STAT_KIND_COUNT)
-		for i in 0 ..< STAT_KIND_COUNT {
-			out.reqs[i] = Apostle_Req {
-				kind = kinds[i],
-				amount = roll_stat_amount(&rng, kinds[i], .Judas),
-			}
-		}
-		out.count = u8(STAT_KIND_COUNT)
-		return out
-	}
-
-	two_req := apostle_rng_u32(&rng) % 2 == 0
-	tier := two_req ? Req_Tier.Low : Req_Tier.High
-	n := two_req ? 2 : 1
-	kinds := pick_distinct_kinds(&rng, n)
-	for i in 0 ..< n {
-		out.reqs[i] = Apostle_Req {
-			kind = kinds[i],
-			amount = roll_stat_amount(&rng, kinds[i], tier),
-		}
-	}
-	out.count = u8(n)
-	return out
-}
-
-apostle_bit_bytes :: proc() -> int {
-	return 2
-}
-
-apostle_bit_get :: proc(bits: []u8, idx: int) -> bool {
-	if idx < 0 || idx >= APOSTLE_COUNT || len(bits) < apostle_bit_bytes() {
-		return false
-	}
-	return (bits[idx / 8] >> u8(idx % 8)) & 1 != 0
-}
-
-apostle_bit_set :: proc(bits: []u8, idx: int) {
-	if idx < 0 || idx >= APOSTLE_COUNT || len(bits) < apostle_bit_bytes() {
-		return
-	}
-	bits[idx / 8] |= 1 << u8(idx % 8)
-}
 
 spawn_apostles :: proc(p: ^People, seed: u64, chunk_width: f32, ground_y: f32) {
 	for a in 0 ..< APOSTLE_COUNT {
 		p.apostle_requirements[a] = roll_apostle_requirements(seed, a)
+		p.apostle_reject_speech[a] = roll_apostle_reject_speech(seed, a)
 	}
 	old_n := len(p.rows)
 	new_n := old_n + APOSTLE_COUNT
@@ -223,6 +44,69 @@ spawn_apostles :: proc(p: ^People, seed: u64, chunk_width: f32, ground_y: f32) {
 		pos_y := ground_y - size_h
 		def := APOSTLE_DEFS[a]
 		i := old_n + a
+		p.rows[i] = Person{
+			transform = {
+				pos_x = pos_x,
+				pos_y = pos_y,
+				size_w = size_w,
+				size_h = size_h,
+				base_y = pos_y,
+				bound_min_x = pos_x,
+				bound_max_x = pos_x,
+				dir = 1,
+			},
+			motion = {
+				state = .Idle,
+				phase = .Active,
+				timer = 9999,
+			},
+			traits = {
+				age = .Adult,
+				speed_scale = 1,
+				color = def.color,
+				draw_alpha = 1,
+			},
+			identity = {
+				role = .Apostle,
+				apostle_idx = u8(a),
+				party_slot = -1,
+			},
+		}
+	}
+}
+
+spawn_apostles_lineup_center :: proc(p: ^People, seed: u64, screen_w: f32, ground_y: f32, count: int) {
+	for a in 0 ..< APOSTLE_COUNT {
+		p.apostle_requirements[a] = roll_apostle_requirements(seed, a)
+		p.apostle_reject_speech[a] = roll_apostle_reject_speech(seed, a)
+	}
+	n := count
+	if n <= 0 {
+		n = APOSTLE_COUNT
+	}
+	n = min(n, APOSTLE_COUNT)
+	old_n := len(p.rows)
+	new_n := old_n + n
+	new_rows := make_soa_slice(#soa[]Person, new_n) or_else panic("apostle rows alloc failed")
+	for i in 0 ..< old_n {
+		new_rows[i] = p.rows[i]
+	}
+	delete(p.rows)
+	p.rows = new_rows
+
+	size_w: f32 = 23
+	size_h: f32 = 34
+	pitch: f32 = size_w + 32
+	row_w := f32(max(n - 1, 0)) * pitch + size_w
+	edge_margin: f32 = 72
+	x0 := (screen_w - row_w) * 0.5
+	x0 = math.clamp(x0, edge_margin, max(screen_w - edge_margin - row_w, edge_margin))
+	pos_y := ground_y - size_h
+
+	for a in 0 ..< n {
+		def := APOSTLE_DEFS[a]
+		i := old_n + a
+		pos_x := x0 + f32(a) * pitch
 		p.rows[i] = Person{
 			transform = {
 				pos_x = pos_x,
@@ -330,9 +214,10 @@ try_interact_apostle :: proc(
 	idx := int(p.rows[best].identity.apostle_idx)
 	reqs := p.apostle_requirements[idx]
 	if !requirements_met(available, reqs) {
-		p.rows[best].behavior.reject_flash = REJECT_FLASH_DURATION
+		p.rows[best].behavior.reject_speech_show = true
 		return best, false
 	}
+	p.rows[best].behavior.reject_speech_show = false
 	pledge_requirements(pledged, reqs)
 	p.rows[best].behavior.subbehavior = .None
 	begin_celebrating(p, best)
@@ -396,10 +281,15 @@ apply_apostle_bits :: proc(p: ^People, bits: []u8) {
 	}
 }
 
-tick_apostle_reject_flash :: proc(p: ^People, dt: f32) {
+tick_apostle_reject_speech :: proc(p: ^People, player_pos: rl.Vector2, player_size: rl.Vector2) {
+	player_rect := rl.Rectangle{player_pos.x, player_pos.y, player_size.x, player_size.y}
 	for i in p.crowd_count ..< len(p.rows) {
-		if p.rows[i].behavior.reject_flash > 0 {
-			p.rows[i].behavior.reject_flash -= dt
+		if !p.rows[i].behavior.reject_speech_show {
+			continue
+		}
+		pr := person_rect_at(p, i)
+		if !rl.CheckCollisionRecs(player_rect, pr) {
+			p.rows[i].behavior.reject_speech_show = false
 		}
 	}
 }
@@ -555,104 +445,6 @@ update_apostle_follow :: proc(
 		target_cx := party_trail_x_at_dist(p, player_cx, leash)
 		target_x := target_cx - p.rows[i].transform.size_w * 0.5
 		move_follower_toward_x(p, i, target_x, speed, dt)
-	}
-}
-
-apostle_req_row_width :: proc(kind: Stat_Kind, avail: u32, req: u32, font: i32) -> f32 {
-	symbol_w := stat_symbol_width(kind, font)
-	nums := stat_req_numbers(avail, req)
-	return symbol_w + REQ_NUM_GAP + f32(rl.MeasureText(nums, font))
-}
-
-draw_apostle_overlays :: proc(
-	p: ^People,
-	view: rl.Rectangle,
-	player_pos: rl.Vector2,
-	player_size: rl.Vector2,
-	available: Run_Stats,
-) {
-	player_rect := rl.Rectangle{player_pos.x, player_pos.y, player_size.x, player_size.y}
-	font: i32 = APOSTLE_LABEL_FONT
-	line_gap: f32 = 1
-	title_h := f32(font)
-	req_row_h := math.max(title_h, ui.UI_ICON_DRAW_SIZE)
-
-	for i in p.crowd_count ..< len(p.rows) {
-		row := p.rows[i]
-		if row.identity.role != .Apostle || row.motion.phase == .Gone {
-			continue
-		}
-		pr := person_rect_at(p, i)
-		if !rl.CheckCollisionRecs(pr, view) {
-			continue
-		}
-		if row.motion.phase == .Active &&
-		   is_apostle_interactable(p, i) &&
-		   rl.CheckCollisionRecs(player_rect, pr) {
-			def := APOSTLE_DEFS[int(row.identity.apostle_idx)]
-			reqs := p.apostle_requirements[int(row.identity.apostle_idx)]
-			cx := row.transform.pos_x + row.transform.size_w * 0.5
-
-			idx := int(row.identity.apostle_idx)
-			bonus_kind := apostle_bonus_kind(idx)
-			bonus_line: cstring = ""
-			if bonus_kind != .None {
-				bonus_line = fmt.ctprintf("Bonus: %s", apostle_bonus_label(bonus_kind))
-			}
-
-			title := fmt.ctprintf("%s:", def.name)
-			tw := f32(rl.MeasureText(title, font))
-			if bonus_line != "" {
-				bw := f32(rl.MeasureText(bonus_line, font))
-				if bw > tw {
-					tw = bw
-				}
-			}
-			n := int(reqs.count)
-			for j in 0 ..< n {
-				r := reqs.reqs[j]
-				avail := stat_value(available, r.kind)
-				rw := apostle_req_row_width(r.kind, avail, r.amount, font)
-				if rw > tw {
-					tw = rw
-				}
-			}
-			bubble_w := tw + BUBBLE_PAD * 2
-			bubble_h := BUBBLE_PAD + title_h + line_gap + f32(n) * req_row_h
-			if n > 0 {
-				bubble_h += f32(n - 1) * line_gap
-			}
-			if bonus_line != "" {
-				bubble_h += line_gap + title_h
-			}
-			bubble_h += BUBBLE_PAD
-			bx := cx - bubble_w * 0.5
-			by := row.transform.pos_y - bubble_h - 4
-			rl.DrawRectangleRec({bx, by, bubble_w, bubble_h}, theme.BUBBLE_FILL)
-			rl.DrawRectangleLinesEx({bx, by, bubble_w, bubble_h}, 1, theme.BUBBLE_BORDER)
-
-			content_x := bx + BUBBLE_PAD
-			ty := by + BUBBLE_PAD
-			rl.DrawText(title, i32(content_x), i32(ty), font, theme.TEXT_INK)
-			ty += title_h + line_gap
-			if bonus_line != "" {
-				rl.DrawText(bonus_line, i32(content_x), i32(ty), font, theme.REQ_MET)
-				ty += title_h + line_gap
-			}
-
-			for j in 0 ..< n {
-				r := reqs.reqs[j]
-				avail := stat_value(available, r.kind)
-				symbol_w := stat_symbol_width(r.kind, font)
-				draw_stat_symbol(r.kind, content_x, ty, req_row_h, font, theme.TEXT_INK)
-				nums := stat_req_numbers(avail, r.amount)
-				num_col :=
-					stat_req_met(avail, r.amount) ? theme.REQ_MET : theme.REQ_SHORT
-				num_ty := i32(ty + req_row_h) - font
-				rl.DrawText(nums, i32(content_x + symbol_w + REQ_NUM_GAP), num_ty, font, num_col)
-				ty += req_row_h + line_gap
-			}
-		}
 	}
 }
 
