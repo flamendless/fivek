@@ -111,9 +111,9 @@ start_run :: proc(g: ^Game, continue_save: bool) {
 
 when config.IS_DEBUG {
 	debug_reload_current_state :: proc(g: ^Game) {
-		#partial switch g.mode {
-		case .Title:
-			reload_title_random()
+		switch g.mode {
+		case .Splash, .Disclaimer, .Title, .Tutorial, .Credits:
+			reload_title_random(g)
 		case .Playing, .Victory_March, .Victory_Lineup:
 			mode := g.mode
 			start_run(g, false)

@@ -39,31 +39,21 @@ Title_Fish :: struct {
 	path_len:  f32,
 }
 
-@(private = "file")
-title_fx_active: bool
+Game_Title_Fx :: struct {
+	active:           bool,
+	bread_icon:       int,
+	miss_streak:      int,
+	spawn_cooldown:   f32,
+	wave_pending:     int,
+	stagger_cooldown: f32,
+	fish:             [dynamic]Title_Fish,
+}
 
-@(private = "file")
-title_fx_bread_icon: int
-
-@(private = "file")
-title_fx_miss_streak: int
-
-@(private = "file")
-title_fx_spawn_cooldown: f32
-
-@(private = "file")
-title_fx_wave_pending: int
-
-@(private = "file")
-title_fx_stagger_cooldown: f32
-
-@(private = "file")
-title_fx_fish: [dynamic]Title_Fish
-
-title_fx_randomize_bread :: proc(reason: cstring) {
-	prev := title_fx_bread_icon
-	title_fx_bread_icon = rand.int_max(food.BREAD_ICON_COUNT)
-	log.infof("title fx: bread icon %d -> %d (%s)", prev, title_fx_bread_icon, reason)
+title_fx_randomize_bread :: proc(g: ^Game, reason: cstring) {
+	fx := &g.title.fx
+	prev := fx.bread_icon
+	fx.bread_icon = rand.int_max(food.BREAD_ICON_COUNT)
+	log.infof("title fx: bread icon %d -> %d (%s)", prev, fx.bread_icon, reason)
 }
 
 title_fx_next_spawn_delay :: proc() -> f32 {
@@ -100,16 +90,19 @@ title_fx_fish_fully_outside :: proc(g: ^Game, pos: rl.Vector2, half: f32) -> boo
 	return false
 }
 
-title_fx_wave_count :: proc() -> int {
-	return min(TITLE_FX_MAX_FISH, 1 + title_fx_miss_streak)
+title_fx_wave_count :: proc(g: ^Game) -> int {
+	return min(TITLE_FX_MAX_FISH, 1 + g.title.fx.miss_streak)
 }
 
-title_fx_wave_speed :: proc() -> f32 {
-	return min(TITLE_FX_MAX_SPEED, TITLE_FX_BASE_SPEED + f32(title_fx_miss_streak) * TITLE_FX_SPEED_PER_MISS)
+title_fx_wave_speed :: proc(g: ^Game) -> f32 {
+	return min(
+		TITLE_FX_MAX_SPEED,
+		TITLE_FX_BASE_SPEED + f32(g.title.fx.miss_streak) * TITLE_FX_SPEED_PER_MISS,
+	)
 }
 
-title_fx_wave_size_scale :: proc() -> f32 {
-	return min(TITLE_FX_MAX_SIZE_SCALE, 1.0 + f32(title_fx_miss_streak) * TITLE_FX_SIZE_PER_MISS)
+title_fx_wave_size_scale :: proc(g: ^Game) -> f32 {
+	return min(TITLE_FX_MAX_SIZE_SCALE, 1.0 + f32(g.title.fx.miss_streak) * TITLE_FX_SIZE_PER_MISS)
 }
 
 title_fx_edge_name :: proc(edge: Title_Fx_Edge) -> cstring {
@@ -161,15 +154,16 @@ title_fx_spawn_points :: proc(
 }
 
 title_fx_spawn_one_fish :: proc(g: ^Game) -> bool {
+	fx := &g.title.fx
 	if !food.ready() {
 		return false
 	}
-	if len(title_fx_fish) >= TITLE_FX_MAX_FISH {
+	if len(fx.fish) >= TITLE_FX_MAX_FISH {
 		log.infof("title fx: spawn skipped (capped at %d active fish)", TITLE_FX_MAX_FISH)
 		return false
 	}
-	speed := title_fx_wave_speed()
-	scale := title_fx_wave_size_scale()
+	speed := title_fx_wave_speed(g)
+	scale := title_fx_wave_size_scale(g)
 	base_size := f32(ui_px(g, TITLE_FX_FISH_BASE_DESIGN))
 	draw_size := base_size * scale
 	edges := [4]Title_Fx_Edge{.Left, .Right, .Top, .Bottom}
@@ -178,7 +172,7 @@ title_fx_spawn_one_fish :: proc(g: ^Game) -> bool {
 	path_len := max(rl.Vector2Distance(start, end), 1.0)
 	icon := rand.int_max(food.FISH_ICON_COUNT)
 	append(
-		&title_fx_fish,
+		&fx.fish,
 		Title_Fish {
 			start = start,
 			end = end,
@@ -191,7 +185,7 @@ title_fx_spawn_one_fish :: proc(g: ^Game) -> bool {
 	)
 	log.infof(
 		"title fx: fish #%d icon=%d edge=%s start=(%.0f,%.0f) end=(%.0f,%.0f) path_len=%.0f active=%d",
-		len(title_fx_fish) - 1,
+		len(fx.fish) - 1,
 		icon,
 		title_fx_edge_name(edge),
 		start.x,
@@ -199,44 +193,47 @@ title_fx_spawn_one_fish :: proc(g: ^Game) -> bool {
 		end.x,
 		end.y,
 		path_len,
-		len(title_fx_fish),
+		len(fx.fish),
 	)
 	return true
 }
 
 title_fx_begin_wave :: proc(g: ^Game) {
+	fx := &g.title.fx
 	if !food.ready() {
 		log.warn("title fx: spawn wave skipped (food atlases not ready)")
 		return
 	}
-	count := title_fx_wave_count()
+	count := title_fx_wave_count(g)
 	log.infof(
 		"title fx: wave start count=%d speed=%.0f scale=%.2f miss_streak=%d active=%d",
 		count,
-		title_fx_wave_speed(),
-		title_fx_wave_size_scale(),
-		title_fx_miss_streak,
-		len(title_fx_fish),
+		title_fx_wave_speed(g),
+		title_fx_wave_size_scale(g),
+		fx.miss_streak,
+		len(fx.fish),
 	)
-	title_fx_wave_pending = count
-	title_fx_stagger_cooldown = 0
+	fx.wave_pending = count
+	fx.stagger_cooldown = 0
 }
 
 title_fx_tick_wave_spawn :: proc(g: ^Game) {
-	if title_fx_wave_pending <= 0 || title_fx_stagger_cooldown > 0 {
+	fx := &g.title.fx
+	if fx.wave_pending <= 0 || fx.stagger_cooldown > 0 {
 		return
 	}
 	if !title_fx_spawn_one_fish(g) {
-		title_fx_wave_pending = 0
+		fx.wave_pending = 0
 		return
 	}
-	title_fx_wave_pending -= 1
-	if title_fx_wave_pending > 0 {
-		title_fx_stagger_cooldown = title_fx_next_stagger_delay()
+	fx.wave_pending -= 1
+	if fx.wave_pending > 0 {
+		fx.stagger_cooldown = title_fx_next_stagger_delay()
 	}
 }
 
 title_fx_try_spawn :: proc(g: ^Game) {
+	fx := &g.title.fx
 	chance := rand.int_max(TITLE_FX_CHANCE_MAX - TITLE_FX_CHANCE_MIN + 1) + TITLE_FX_CHANCE_MIN
 	roll := rand.int_max(100)
 	passed := roll < chance
@@ -245,7 +242,7 @@ title_fx_try_spawn :: proc(g: ^Game) {
 		chance,
 		roll,
 		passed ? "spawn" : "skip",
-		title_fx_miss_streak,
+		fx.miss_streak,
 	)
 	if !passed {
 		return
@@ -253,50 +250,49 @@ title_fx_try_spawn :: proc(g: ^Game) {
 	title_fx_begin_wave(g)
 }
 
-title_fx_reset :: proc() {
-	title_fx_destroy_all_fish("reset")
-	title_fx_miss_streak = 0
-	title_fx_bread_icon = -1
-	title_fx_randomize_bread("reset")
-	title_fx_spawn_cooldown = title_fx_next_spawn_delay()
-	title_fx_wave_pending = 0
-	title_fx_stagger_cooldown = 0
-	log.infof("title fx: reset miss_streak=0 next_spawn_in=%.2fs", title_fx_spawn_cooldown)
+title_fx_reset :: proc(g: ^Game) {
+	fx := &g.title.fx
+	title_fx_destroy_all_fish(g, "reset")
+	fx.miss_streak = 0
+	fx.bread_icon = -1
+	title_fx_randomize_bread(g, "reset")
+	fx.spawn_cooldown = title_fx_next_spawn_delay()
+	fx.wave_pending = 0
+	fx.stagger_cooldown = 0
+	log.infof("title fx: reset miss_streak=0 next_spawn_in=%.2fs", fx.spawn_cooldown)
 }
 
-title_fx_on_enter :: proc() {
-	if title_fx_active {
+title_fx_on_enter :: proc(g: ^Game) {
+	fx := &g.title.fx
+	if fx.active {
 		return
 	}
 	log.info("title fx: enter title")
-	title_fx_reset()
+	title_fx_reset(g)
 	rl.HideCursor()
-	title_fx_active = true
+	fx.active = true
 }
 
-title_fx_on_leave :: proc() {
-	if !title_fx_active {
+title_fx_on_leave :: proc(g: ^Game) {
+	fx := &g.title.fx
+	if !fx.active {
 		return
 	}
 	log.info("title fx: leave title")
-	title_fx_destroy_all_fish("leave")
+	title_fx_destroy_all_fish(g, "leave")
 	rl.ShowCursor()
-	title_fx_active = false
-}
-
-title_fx_shutdown :: proc() {
-	title_fx_on_leave()
-	delete(title_fx_fish)
+	fx.active = false
 }
 
 title_fx_bread_size :: proc(g: ^Game) -> f32 {
 	return f32(ui_px(g, TITLE_FX_BREAD_DESIGN))
 }
 
-title_fx_destroy_fish :: proc(i: int, reason: cstring) {
-	f := title_fx_fish[i]
+title_fx_destroy_fish :: proc(g: ^Game, i: int, reason: cstring) {
+	fx := &g.title.fx
+	f := fx.fish[i]
 	pos := title_fx_fish_pos(&f)
-	remaining := len(title_fx_fish) - 1
+	remaining := len(fx.fish) - 1
 	log.infof(
 		"title fx: fish destroyed icon=%d reason=%s t=%.2f pos=(%.0f,%.0f) remaining=%d",
 		f.icon,
@@ -306,30 +302,32 @@ title_fx_destroy_fish :: proc(i: int, reason: cstring) {
 		pos.y,
 		remaining,
 	)
-	ordered_remove(&title_fx_fish, i)
+	ordered_remove(&fx.fish, i)
 }
 
-title_fx_destroy_all_fish :: proc(reason: cstring) {
-	for i := len(title_fx_fish) - 1; i >= 0; i -= 1 {
-		title_fx_destroy_fish(i, reason)
+title_fx_destroy_all_fish :: proc(g: ^Game, reason: cstring) {
+	fx := &g.title.fx
+	for i := len(fx.fish) - 1; i >= 0; i -= 1 {
+		title_fx_destroy_fish(g, i, reason)
 	}
 }
 
 title_fx_update :: proc(g: ^Game, dt: f32, frozen: bool) {
-	if !title_fx_active || !food.ready() {
+	fx := &g.title.fx
+	if !fx.active || !food.ready() {
 		return
 	}
 
 	if !frozen {
-		title_fx_spawn_cooldown -= dt
-		if title_fx_spawn_cooldown <= 0 {
+		fx.spawn_cooldown -= dt
+		if fx.spawn_cooldown <= 0 {
 			next := title_fx_next_spawn_delay()
 			log.infof("title fx: spawn timer fired next_in=%.2fs", next)
-			title_fx_spawn_cooldown = next
+			fx.spawn_cooldown = next
 			title_fx_try_spawn(g)
 		}
-		if title_fx_wave_pending > 0 {
-			title_fx_stagger_cooldown -= dt
+		if fx.wave_pending > 0 {
+			fx.stagger_cooldown -= dt
 			title_fx_tick_wave_spawn(g)
 		}
 	}
@@ -337,8 +335,8 @@ title_fx_update :: proc(g: ^Game, dt: f32, frozen: bool) {
 	mouse := ui_mouse_game_pos(g)
 	bread_r := title_fx_bread_size(g) * 0.5
 
-	for i := len(title_fx_fish) - 1; i >= 0; i -= 1 {
-		f := &title_fx_fish[i]
+	for i := len(fx.fish) - 1; i >= 0; i -= 1 {
+		f := &fx.fish[i]
 		if !frozen {
 			f.t += (f.speed * dt) / f.path_len
 		}
@@ -346,33 +344,34 @@ title_fx_update :: proc(g: ^Game, dt: f32, frozen: bool) {
 		fish_r := f.draw_size * 0.5
 
 		if rl.Vector2Distance(pos, mouse) <= fish_r + bread_r {
-			title_fx_randomize_bread("catch")
-			title_fx_miss_streak = 0
-			title_fx_destroy_fish(i, "catch")
+			title_fx_randomize_bread(g, "catch")
+			fx.miss_streak = 0
+			title_fx_destroy_fish(g, i, "catch")
 			continue
 		}
 
 		if f.t >= 1.0 && title_fx_fish_fully_outside(g, pos, fish_r) {
-			title_fx_miss_streak += 1
+			fx.miss_streak += 1
 			log.infof(
 				"title fx: miss (next wave count=%d speed=%.0f miss_streak=%d)",
-				title_fx_wave_count(),
-				title_fx_wave_speed(),
-				title_fx_miss_streak,
+				title_fx_wave_count(g),
+				title_fx_wave_speed(g),
+				fx.miss_streak,
 			)
-			title_fx_destroy_fish(i, "miss")
+			title_fx_destroy_fish(g, i, "miss")
 		}
 	}
 }
 
 title_fx_draw_fish :: proc(g: ^Game) {
+	fx := &g.title.fx
 	if !food.ready() {
 		return
 	}
 	cell := f32(food.FISH_CELL_SIZE)
 	cols := food.FISH_ATLAS_COLS
 
-	for &f in title_fx_fish {
+	for &f in fx.fish {
 		pos := title_fx_fish_pos(&f)
 		delta := f.end - f.start
 		rot := math.atan2(delta.y, delta.x) * (180.0 / math.PI)
@@ -386,6 +385,7 @@ title_fx_draw_fish :: proc(g: ^Game) {
 }
 
 title_fx_draw_bread :: proc(g: ^Game) {
+	fx := &g.title.fx
 	if !food.ready() {
 		return
 	}
@@ -393,7 +393,7 @@ title_fx_draw_bread :: proc(g: ^Game) {
 	size := title_fx_bread_size(g)
 	food.draw_icon(
 		food.bread_tex,
-		title_fx_bread_icon,
+		fx.bread_icon,
 		f32(food.BREAD_CELL_SIZE),
 		food.BREAD_ATLAS_COLS,
 		mouse,

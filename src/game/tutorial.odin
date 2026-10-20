@@ -2,6 +2,10 @@ package game
 
 import rl "vendor:raylib"
 
+Game_Tutorial :: struct {
+	into_play: bool,
+}
+
 TUTORIAL_GOAL_LINES: [3]cstring = {
 	"Give fish and bread to the crowd.",
 	"Recruit apostles with E to help.",
@@ -9,20 +13,20 @@ TUTORIAL_GOAL_LINES: [3]cstring = {
 }
 
 enter_tutorial :: proc(g: ^Game, into_play: bool) {
-	g.intro.tutorial_into_play = into_play
+	g.tutorial.into_play = into_play
 	g.mode = .Tutorial
 }
 
 update_tutorial :: proc(g: ^Game) {
 	if rl.IsKeyPressed(.ESCAPE) || rl.IsKeyPressed(.Q) {
-		g.intro.tutorial_into_play = false
+		g.tutorial.into_play = false
 		g.mode = .Title
 		return
 	}
-	if g.intro.tutorial_into_play && intro_skip_pressed() {
-		g.intro.tutorial_seen = true
+	if g.tutorial.into_play && intro_skip_pressed() {
+		g.prefs.tutorial_seen = true
 		save_tutorial_seen()
-		g.intro.tutorial_into_play = false
+		g.tutorial.into_play = false
 		start_run(g, false)
 	}
 }
@@ -70,7 +74,7 @@ draw_tutorial :: proc(g: ^Game) {
 	y += f32(ctrl_line_step)
 	draw_centered_icon_text_row(g, i32(y), ctrl_font, .People, "E  Recruit apostle", rl.LIGHTGRAY, icon_size)
 
-	if g.intro.tutorial_into_play {
+	if g.tutorial.into_play {
 		draw_bottom_center_hint_offset(g, "Space / Enter / E - Start", ui_px(g, 12))
 		draw_bottom_center_hint_offset(g, "Esc / Q - Title", ui_px(g, 28))
 	} else {

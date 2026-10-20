@@ -25,8 +25,7 @@ Parallax_BG :: struct {
 	zoom:   f32,
 }
 
-@(private = "file")
-BG_SETS := []BG_Set{
+PARALLAX_BG_SETS := []BG_Set{
 	{
 		name = "nature_1",
 		layers = {
@@ -79,10 +78,10 @@ BG_SETS := []BG_Set{
 }
 
 load_parallax_bg :: proc(seed: u64, game_h: f32) -> (^Parallax_BG, bool) {
-	if len(BG_SETS) == 0 {
+	if len(PARALLAX_BG_SETS) == 0 {
 		return nil, false
 	}
-	set := BG_SETS[int(seed % u64(len(BG_SETS)))]
+	set := PARALLAX_BG_SETS[int(seed % u64(len(PARALLAX_BG_SETS)))]
 	log.infof("loading parallax set %s (seed %d)", set.name, seed)
 	bg := new(Parallax_BG)
 	bg.set_name = set.name

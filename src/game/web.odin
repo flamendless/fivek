@@ -6,15 +6,17 @@ import "../food"
 import "../ui"
 import rl "vendor:raylib"
 
-@(private = "file")
-g_web: ^Game
+Web_Runtime :: struct {
+	game:        ^Game,
+	should_quit: bool,
+}
 
 @(private = "file")
-web_should_quit: bool
+web: Web_Runtime
 
 request_app_shutdown :: proc() {
 	when ODIN_OS == .JS {
-		web_should_quit = true
+		web.should_quit = true
 	} else {
 		rl.CloseWindow()
 	}
@@ -22,16 +24,16 @@ request_app_shutdown :: proc() {
 
 web_start :: proc() {
 	log.info("initializing game")
-	g_web = init(get_defs())
+	web.game = init(get_defs())
 
 	log.info("initializing window")
-	init_window(g_web)
+	init_window(web.game)
 
-	log.info("loading intro assets")
-	load_intro_assets(g_web)
+	log.info("loading splash assets")
+	load_splash_assets(web.game)
 
 	log.info("loading title assets")
-	load_title_assets()
+	load_title_assets(web.game)
 
 	log.info("loading food")
 	food.load()
@@ -46,26 +48,23 @@ web_start :: proc() {
 }
 
 web_update :: proc() -> bool {
-	update(g_web)
+	update(web.game)
 	rl.PollInputEvents()
-	draw(g_web)
-	g_web.frame += 1
+	draw(web.game)
+	web.game.frame += 1
 	free_all(context.temp_allocator)
-	return !web_should_quit
+	return !web.should_quit
 }
 
 web_end :: proc() {
-	log.info("unloading title assets")
-	unload_title_assets()
-
 	log.info("unloading UI")
 	ui.unload()
 	log.info("unloading currency")
 	currency.unload()
 	log.info("closing game")
-	if g_web != nil {
-		close(g_web)
-		g_web = nil
+	if web.game != nil {
+		close(web.game)
+		web.game = nil
 	}
 	log.info("closing window")
 	close_window()

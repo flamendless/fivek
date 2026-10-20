@@ -43,25 +43,16 @@ SOCIAL_LINKS: [4]Social_Link = {
 	{25, "https://flamendless.itch.io"},
 }
 
-@(private = "file")
-title_sholom: rl.Font
+Game_Title :: struct {
+	sholom:         rl.Font,
+	social_atlas:   rl.Texture2D,
+	settings_open:  bool,
+	hovered_menu:   int,
+	hovered_social: int,
+	pattern:        ^pattern_bg.Screen_Pattern,
+	fx:             Game_Title_Fx,
+}
 
-@(private = "file")
-title_social_atlas: rl.Texture2D
-
-@(private = "file")
-title_settings_open: bool
-
-@(private = "file")
-title_hovered_menu: int = -1
-
-@(private = "file")
-title_hovered_social: int = -1
-
-@(private = "file")
-title_pattern: ^pattern_bg.Screen_Pattern
-
-@(private = "file")
 title_pattern_config :: proc() -> pattern_bg.Config {
 	variant := pattern_bg.random_variant()
 	return {
@@ -74,62 +65,65 @@ title_pattern_config :: proc() -> pattern_bg.Config {
 	}
 }
 
-load_title_assets :: proc() {
-	if title_sholom.texture.id == 0 {
+load_title_assets :: proc(g: ^Game) {
+	if g.title.sholom.texture.id == 0 {
 		log.infof("loading title font %s", TITLE_FONT_PATH)
-		title_sholom = rl.LoadFont(TITLE_FONT_PATH)
-		if title_sholom.texture.id == 0 {
+		g.title.sholom = rl.LoadFont(TITLE_FONT_PATH)
+		if g.title.sholom.texture.id == 0 {
 			log.warnf("failed to load title font %s", TITLE_FONT_PATH)
 		} else {
-			rl.SetTextureFilter(title_sholom.texture, .POINT)
+			rl.SetTextureFilter(g.title.sholom.texture, .POINT)
 		}
 	}
-	if title_social_atlas.id == 0 {
+	if g.title.social_atlas.id == 0 {
 		log.infof("loading social atlas %s", SOCIAL_ATLAS_PATH)
-		title_social_atlas = rl.LoadTexture(SOCIAL_ATLAS_PATH)
-		if title_social_atlas.id != 0 {
-			rl.SetTextureFilter(title_social_atlas, .POINT)
+		g.title.social_atlas = rl.LoadTexture(SOCIAL_ATLAS_PATH)
+		if g.title.social_atlas.id != 0 {
+			rl.SetTextureFilter(g.title.social_atlas, .POINT)
 		} else {
 			log.warnf("failed to load social atlas %s", SOCIAL_ATLAS_PATH)
 		}
 	}
-	if title_pattern == nil {
+	if g.title.pattern == nil {
 		p, ok := pattern_bg.create(title_pattern_config())
 		if !ok {
 			log.warn("failed to create title pattern background")
 		} else {
-			title_pattern = p
+			g.title.pattern = p
 		}
 	}
 }
 
-unload_title_assets :: proc() {
-	if title_sholom.texture.id != 0 {
+unload_title_assets :: proc(g: ^Game) {
+	title_fx_on_leave(g)
+	delete(g.title.fx.fish)
+
+	if g.title.sholom.texture.id != 0 {
 		log.infof("unloading title font %s", TITLE_FONT_PATH)
-		rl.UnloadFont(title_sholom)
-		title_sholom = {}
+		rl.UnloadFont(g.title.sholom)
+		g.title.sholom = {}
 	}
-	if title_social_atlas.id != 0 {
+	if g.title.social_atlas.id != 0 {
 		log.infof("unloading social atlas %s", SOCIAL_ATLAS_PATH)
-		rl.UnloadTexture(title_social_atlas)
-		title_social_atlas = {}
+		rl.UnloadTexture(g.title.social_atlas)
+		g.title.social_atlas = {}
 	}
-	pattern_bg.destroy(title_pattern)
-	title_pattern = nil
+	pattern_bg.destroy(g.title.pattern)
+	g.title.pattern = nil
 }
 
-reload_title_random :: proc() {
-	if title_pattern != nil {
-		if !pattern_bg.set_config(title_pattern, title_pattern_config()) {
+reload_title_random :: proc(g: ^Game) {
+	if g.title.pattern != nil {
+		if !pattern_bg.set_config(g.title.pattern, title_pattern_config()) {
 			log.warn("title: failed to reload pattern background")
 		}
 	}
-	title_fx_reset()
+	title_fx_reset(g)
 }
 
-title_ui_font :: proc() -> rl.Font {
-	if title_sholom.texture.id != 0 {
-		return title_sholom
+title_ui_font :: proc(g: ^Game) -> rl.Font {
+	if g.title.sholom.texture.id != 0 {
+		return g.title.sholom
 	}
 	return rl.GetFontDefault()
 }
@@ -143,7 +137,7 @@ title_char_spacing :: proc(g: ^Game, design: f32) -> f32 {
 }
 
 title_measure :: proc(g: ^Game, text: cstring, size, spacing: f32) -> rl.Vector2 {
-	return rl.MeasureTextEx(title_ui_font(), text, size, spacing)
+	return rl.MeasureTextEx(title_ui_font(g), text, size, spacing)
 }
 
 title_text_outline_px :: proc(g: ^Game) -> f32 {
@@ -177,7 +171,7 @@ title_draw_text_outlined :: proc(
 title_draw_centered :: proc(g: ^Game, text: cstring, y: f32, size, spacing: f32, color: rl.Color) {
 	m := title_measure(g, text, size, spacing)
 	x := (g.view.game_size.x - m.x) * 0.5
-	rl.DrawTextEx(title_ui_font(), text, {x, y}, size, spacing, color)
+	rl.DrawTextEx(title_ui_font(g), text, {x, y}, size, spacing, color)
 }
 
 title_draw_centered_outlined :: proc(
@@ -189,7 +183,7 @@ title_draw_centered_outlined :: proc(
 ) {
 	m := title_measure(g, text, size, spacing)
 	x := (g.view.game_size.x - m.x) * 0.5
-	title_draw_text_outlined(title_ui_font(), text, {x, y}, size, spacing, title_text_outline_px(g), fill, outline)
+	title_draw_text_outlined(title_ui_font(g), text, {x, y}, size, spacing, title_text_outline_px(g), fill, outline)
 }
 
 title_measure_default :: proc(g: ^Game, text: cstring, design: i32) -> rl.Vector2 {
@@ -262,7 +256,7 @@ title_run_primary :: proc(g: ^Game) {
 		start_run(g, true)
 		return
 	}
-	if g.intro.tutorial_seen {
+	if g.prefs.tutorial_seen {
 		start_run(g, false)
 	} else {
 		enter_tutorial(g, true)
@@ -276,7 +270,7 @@ title_menu_action :: proc(g: ^Game, item: Title_Menu) {
 	case .Tutorial:
 		enter_tutorial(g, false)
 	case .Settings:
-		title_settings_open = true
+		g.title.settings_open = true
 	case .Exit:
 		request_app_shutdown()
 	}
@@ -296,22 +290,22 @@ title_social_src :: proc(index: int) -> rl.Rectangle {
 
 update_title :: proc(g: ^Game) {
 	dt := rl.GetFrameTime()
-	title_fx_update(g, dt, title_settings_open)
+	title_fx_update(g, dt, g.title.settings_open)
 
-	if title_settings_open {
+	if g.title.settings_open {
 		if rl.IsKeyPressed(.ESCAPE) {
-			title_settings_open = false
+			g.title.settings_open = false
 		}
 		return
 	}
 
 	mouse := ui_mouse_game_pos(g)
 	clicked := rl.IsMouseButtonPressed(.LEFT)
-	title_hovered_menu = -1
-	title_hovered_social = -1
+	g.title.hovered_menu = -1
+	g.title.hovered_social = -1
 	for i in 0 ..< len(SOCIAL_LINKS) {
 		if _, ok := title_social_hit(g, SOCIAL_LINKS[i], mouse); ok {
-			title_hovered_social = i
+			g.title.hovered_social = i
 			break
 		}
 	}
@@ -339,7 +333,7 @@ update_title :: proc(g: ^Game) {
 		label := title_menu_label(item, g)
 		bounds := title_text_bounds(g, label, menu_y, menu_size, menu_spacing)
 		if rl.CheckCollisionPointRec(mouse, bounds) {
-			title_hovered_menu = int(item)
+			g.title.hovered_menu = int(item)
 			if clicked {
 				title_menu_action(g, item)
 				return
@@ -390,6 +384,13 @@ title_social_layout :: proc(g: ^Game) -> (x: f32, y: f32, size: f32, gap: f32) {
 	return x, y, size, gap
 }
 
+draw_title_pattern_bg :: proc(g: ^Game) {
+	if g.title.pattern != nil {
+		bounds := rl.Rectangle{0, 0, g.view.game_size.x, g.view.game_size.y}
+		pattern_bg.draw_grid(g.title.pattern, bounds, TITLE_PATTERN_CELLS_ACROSS)
+	}
+}
+
 title_social_hit :: proc(g: ^Game, link: Social_Link, mouse: rl.Vector2) -> (rl.Rectangle, bool) {
 	x, y, size, gap := title_social_layout(g)
 	for i in 0 ..< len(SOCIAL_LINKS) {
@@ -411,10 +412,7 @@ draw_title :: proc(g: ^Game) {
 
 	rl.BeginMode2D(g.cameras.ui_camera)
 
-	if title_pattern != nil {
-		bounds := rl.Rectangle{0, 0, g.view.game_size.x, g.view.game_size.y}
-		pattern_bg.draw_grid(title_pattern, bounds, TITLE_PATTERN_CELLS_ACROSS)
-	}
+	draw_title_pattern_bg(g)
 
 	title_fx_draw_fish(g)
 
@@ -439,26 +437,26 @@ draw_title :: proc(g: ^Game) {
 	items := [4]Title_Menu{.Primary, .Tutorial, .Settings, .Exit}
 	for item in items {
 		label := title_menu_label(item, g)
-		color := rl.LIGHTGRAY
-		if title_hovered_menu == int(item) {
+		color := rl.BLACK
+		if g.title.hovered_menu == int(item) {
 			color = rl.WHITE
 		}
 		title_draw_centered(g, label, menu_y, menu_size, menu_spacing, color)
 		menu_y += menu_step
 	}
 
-	if title_social_atlas.id != 0 {
+	if g.title.social_atlas.id != 0 {
 		sx, sy, ssize, sgap := title_social_layout(g)
 		for i in 0 ..< len(SOCIAL_LINKS) {
 			link := SOCIAL_LINKS[i]
 			src := title_social_src(link.atlas_index)
 			dest := rl.Rectangle{sx, sy, ssize, ssize}
 			tint := rl.WHITE
-			if title_hovered_social == i {
+			if g.title.hovered_social == i {
 				tint = theme.SOCIAL_ICON_HOVER
 			}
-			rl.DrawTexturePro(title_social_atlas, src, dest, {}, 0, tint)
-			if title_hovered_social == i {
+			rl.DrawTexturePro(g.title.social_atlas, src, dest, {}, 0, tint)
+			if g.title.hovered_social == i {
 				outline_pad := f32(ui_px(g, 1))
 				outline := rl.Rectangle {
 					dest.x - outline_pad,
@@ -482,7 +480,7 @@ draw_title :: proc(g: ^Game) {
 	ver_spacing := title_char_spacing(g, 1)
 	rl.DrawTextEx(ver_font, ver, {ver_x, ver_y}, ver_size, ver_spacing, rl.RED)
 
-	if title_settings_open {
+	if g.title.settings_open {
 		rl.DrawRectangle(0, 0, i32(g.view.game_size.x), i32(g.view.game_size.y), theme.OVERLAY_SCRIM_180)
 		settings_size := title_font_size(g, 24)
 		settings_spacing := title_char_spacing(g, 1)

@@ -31,11 +31,11 @@ when config.IS_AUTOTEST {
 		log.info("initializing window")
 		game.init_window(g)
 
-		log.info("loading intro assets")
-		game.load_intro_assets(g)
+		log.info("loading splash assets")
+		game.load_splash_assets(g)
 
 		log.info("loading title assets")
-		game.load_title_assets()
+		game.load_title_assets(g)
 
 		log.info("loading food")
 		food.load()

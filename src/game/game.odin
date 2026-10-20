@@ -70,13 +70,9 @@ Game_Input :: struct {
 	e_was_down:               bool,
 }
 
-Game_Intro :: struct {
-	splash_logo:         rl.Texture2D,
-	intro_seen:          bool,
-	tutorial_seen:       bool,
-	tutorial_into_play:  bool,
-	splash_elapsed:      f32,
-	disclaimer_elapsed:  f32,
+Game_Prefs :: struct {
+	intro_seen:    bool,
+	tutorial_seen: bool,
 }
 
 Game_Autotest :: struct {
@@ -101,9 +97,13 @@ Game :: struct {
 	scene:    Game_Scene,
 	run:      Game_Run,
 	cameras:  Game_Cameras,
-	input:    Game_Input,
-	intro:    Game_Intro,
-	autotest: Game_Autotest,
+	input:      Game_Input,
+	prefs:      Game_Prefs,
+	splash:     Game_Splash,
+	disclaimer: Game_Disclaimer,
+	tutorial:   Game_Tutorial,
+	title:      Game_Title,
+	autotest:   Game_Autotest,
 	persist:  Game_Persist,
 }
 
@@ -112,8 +112,10 @@ init :: proc(defs := Game_Defs{}) -> ^Game {
 	g := new(Game)
 	g.defs = defs
 	g.mode = .Splash
-	g.intro.intro_seen = load_intro_seen()
-	g.intro.tutorial_seen = load_tutorial_seen()
+	g.prefs.intro_seen = load_intro_seen()
+	g.prefs.tutorial_seen = load_tutorial_seen()
+	g.title.hovered_menu = -1
+	g.title.hovered_social = -1
 	g.view.window_size = {
 		f32(config.GAME_VIEW_WIDTH),
 		f32(config.GAME_VIEW_HEIGHT),
@@ -167,9 +169,9 @@ update :: proc(g: ^Game) {
 		}
 	}
 	if g.mode == .Title {
-		title_fx_on_enter()
+		title_fx_on_enter(g)
 	} else {
-		title_fx_on_leave()
+		title_fx_on_leave(g)
 	}
 	switch g.mode {
 	case .Splash:
@@ -220,14 +222,13 @@ draw :: proc(g: ^Game) {
 
 close :: proc(g: ^Game) {
 	log.info("closing game")
-	title_fx_shutdown()
 	w.free_world(g.scene.level)
 	person.free_people(g.scene.people)
 	free(g.scene.ground)
 	free(g.scene.player)
 	free_parallax_bg(g.scene.bg)
-	unload_intro_assets(g)
-	unload_title_assets()
+	unload_splash_assets(g)
+	unload_title_assets(g)
 	food.unload()
 	delete(g.run.served_bits)
 	delete(g.run.apostle_bits)
