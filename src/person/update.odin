@@ -33,6 +33,7 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 
 	switch p.rows[i].motion.state {
 	case .Celebrating:
+		p.rows[i].motion.idle_anim_t += dt
 		p.rows[i].motion.hop_timer -= dt
 		if p.rows[i].motion.hop_timer <= 0 {
 			p.rows[i].motion.hop_step += 1
@@ -54,6 +55,7 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		}
 
 	case .Idle:
+		p.rows[i].motion.idle_anim_t += dt
 		if p.rows[i].identity.role == .Crowd &&
 		   p.rows[i].food.has_fish &&
 		   p.rows[i].food.has_bread &&
@@ -70,6 +72,7 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		}
 
 	case .Walking, .Running:
+		p.rows[i].motion.walk_anim_t += dt
 		if p.rows[i].identity.role == .Crowd &&
 		   p.rows[i].food.has_fish &&
 		   p.rows[i].food.has_bread &&

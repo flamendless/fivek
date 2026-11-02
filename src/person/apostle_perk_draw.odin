@@ -1,6 +1,7 @@
 package person
 
 import rl "vendor:raylib"
+import "../assets"
 import "../currency"
 import "../food"
 import "../theme"
@@ -31,14 +32,14 @@ draw_apostle_perk_bubbles :: proc(p: ^People, view: rl.Rectangle) {
 		case .Intent_Text, .Judas_Angry, .Passive_Text:
 			draw_speech_bubble_text(cx, anchor_y, row.perk.perk_bubble.text, font)
 		case .Judas_Coin:
-			icon := food.FOOD_ICON_DRAW_SIZE
+			icon := assets.food_icon_draw_size()
 			bubble_w = icon + pad * 2
 			bubble_h = icon + pad * 2
 			draw_speech_bubble(cx, anchor_y, bubble_w, bubble_h)
 			cy := anchor_y - bubble_h * 0.5
 			currency.draw_coin_icon(int(row.perk.perk_bubble.coin_icon), {cx, cy})
 		case .Philip_Calc:
-			icon := food.FOOD_ICON_DRAW_SIZE
+			icon := assets.food_icon_draw_size()
 			gap: f32 = 4
 			eq: cstring = "= ???"
 			eq_w := f32(rl.MeasureText(eq, font))
@@ -49,19 +50,21 @@ draw_apostle_perk_bubbles :: proc(p: ^People, view: rl.Rectangle) {
 			draw_speech_bubble(cx, anchor_y, bubble_w, bubble_h)
 			left := cx - bubble_w * 0.5 + pad
 			cy := anchor_y - bubble_h * 0.5
-			if food.ready() {
+			if assets.gameplay_ready() {
+				fish := assets.fish_grid()
+				bread := assets.bread_grid()
 				food.draw_icon(
-					food.fish_tex,
-					int(row.perk.perk_bubble.philip_fish) % food.FISH_ICON_COUNT,
-					f32(food.FISH_CELL_SIZE),
-					food.FISH_ATLAS_COLS,
+					assets.atlas(.Fish),
+					int(row.perk.perk_bubble.philip_fish) % fish.icon_count,
+					fish.cell,
+					fish.cols,
 					{left + icon * 0.5, cy},
 				)
 				food.draw_icon(
-					food.bread_tex,
-					int(row.perk.perk_bubble.philip_bread) % food.BREAD_ICON_COUNT,
-					f32(food.BREAD_CELL_SIZE),
-					food.BREAD_ATLAS_COLS,
+					assets.atlas(.Bread),
+					int(row.perk.perk_bubble.philip_bread) % bread.icon_count,
+					bread.cell,
+					bread.cols,
 					{left + icon + gap + mw + gap + icon * 0.5, cy},
 				)
 			}

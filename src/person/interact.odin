@@ -2,7 +2,7 @@ package person
 
 import "core:math"
 import "core:math/rand"
-import "../food"
+import "../assets"
 import rl "vendor:raylib"
 
 player_in_interact_range :: proc(
@@ -84,13 +84,13 @@ apply_give_item :: proc(p: ^People, i: int, item: Give_Item, player_cx: f32, sta
 	case .Fish:
 		if !p.rows[i].food.has_fish {
 			p.rows[i].food.has_fish = true
-			p.rows[i].food.fish_icon = u8(rand.int_max(food.FISH_ICON_COUNT))
+			p.rows[i].food.fish_icon = u8(rand.int_max(assets.fish_grid().icon_count))
 			gave_new = true
 		}
 	case .Bread:
 		if !p.rows[i].food.has_bread {
 			p.rows[i].food.has_bread = true
-			p.rows[i].food.bread_icon = u8(rand.int_max(food.BREAD_ICON_COUNT))
+			p.rows[i].food.bread_icon = u8(rand.int_max(assets.bread_grid().icon_count))
 			gave_new = true
 		}
 	}

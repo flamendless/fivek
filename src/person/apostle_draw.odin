@@ -3,7 +3,7 @@ package person
 import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
-import "../ui"
+import "../assets"
 import "../theme"
 
 apostle_req_row_width :: proc(kind: Stat_Kind, avail: u32, req: u32, font: i32) -> f32 {
@@ -20,7 +20,7 @@ measure_apostle_requirement_bubble :: proc(
 ) -> (bubble_w, bubble_h: f32) {
 	line_gap: f32 = 1
 	title_h := f32(font)
-	req_row_h := math.max(title_h, ui.UI_ICON_DRAW_SIZE)
+	req_row_h := math.max(title_h, assets.ui_layout().icon_draw_size)
 	def := APOSTLE_DEFS[apostle_idx]
 	reqs := p.apostle_requirements[apostle_idx]
 	bonus_kind := apostle_bonus_kind(apostle_idx)
@@ -67,7 +67,7 @@ draw_apostle_requirement_bubble :: proc(
 ) {
 	line_gap: f32 = 1
 	title_h := f32(font)
-	req_row_h := math.max(title_h, ui.UI_ICON_DRAW_SIZE)
+	req_row_h := math.max(title_h, assets.ui_layout().icon_draw_size)
 	def := APOSTLE_DEFS[apostle_idx]
 	reqs := p.apostle_requirements[apostle_idx]
 	bonus_kind := apostle_bonus_kind(apostle_idx)

@@ -5,11 +5,9 @@ import "core:log"
 import "core:math/rand"
 import "core:os"
 import rl "vendor:raylib"
+import "../assets"
 import "../pattern_bg"
-import "../social"
 import "../theme"
-
-TITLE_FONT_PATH :: "assets/fonts/sholom/Sholom-Yz3J4.ttf"
 
 TITLE_HEADLINE_SHOLOM :: "Bread, Fish, Repeat"
 TITLE_HEADLINE_SUFFIX :: "5000x"
@@ -31,8 +29,6 @@ Title_Menu :: enum {
 }
 
 Game_Title :: struct {
-	sholom:         rl.Font,
-	social_atlas:   rl.Texture2D,
 	settings_open:  bool,
 	hovered_menu:      int,
 	hovered_social:    int,
@@ -54,24 +50,6 @@ title_pattern_config :: proc() -> pattern_bg.Config {
 }
 
 load_title_assets :: proc(g: ^Game) {
-	if g.title.sholom.texture.id == 0 {
-		log.infof("loading title font %s", TITLE_FONT_PATH)
-		g.title.sholom = rl.LoadFont(TITLE_FONT_PATH)
-		if g.title.sholom.texture.id == 0 {
-			log.warnf("failed to load title font %s", TITLE_FONT_PATH)
-		} else {
-			rl.SetTextureFilter(g.title.sholom.texture, .POINT)
-		}
-	}
-	if g.title.social_atlas.id == 0 {
-		log.infof("loading social atlas %s", social.ATLAS_PATH)
-		g.title.social_atlas = rl.LoadTexture(social.ATLAS_PATH)
-		if g.title.social_atlas.id != 0 {
-			rl.SetTextureFilter(g.title.social_atlas, .POINT)
-		} else {
-			log.warnf("failed to load social atlas %s", social.ATLAS_PATH)
-		}
-	}
 	refresh_title_pattern(g)
 }
 
@@ -97,17 +75,6 @@ pattern_screen_mode :: proc(mode: Game_Mode) -> bool {
 unload_title_assets :: proc(g: ^Game) {
 	title_fx_on_leave(g)
 	delete(g.title.fx.fish)
-
-	if g.title.sholom.texture.id != 0 {
-		log.infof("unloading title font %s", TITLE_FONT_PATH)
-		rl.UnloadFont(g.title.sholom)
-		g.title.sholom = {}
-	}
-	if g.title.social_atlas.id != 0 {
-		log.infof("unloading social atlas %s", social.ATLAS_PATH)
-		rl.UnloadTexture(g.title.social_atlas)
-		g.title.social_atlas = {}
-	}
 	pattern_bg.destroy(g.title.pattern)
 	g.title.pattern = nil
 }
@@ -118,8 +85,9 @@ reload_title_random :: proc(g: ^Game) {
 }
 
 title_ui_font :: proc(g: ^Game) -> rl.Font {
-	if g.title.sholom.texture.id != 0 {
-		return g.title.sholom
+	font := assets.boot_title_font()
+	if font.texture.id != 0 {
+		return font
 	}
 	return rl.GetFontDefault()
 }

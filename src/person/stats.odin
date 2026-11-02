@@ -2,6 +2,7 @@ package person
 
 import "core:fmt"
 import rl "vendor:raylib"
+import "../assets"
 import "../food"
 import "../ui"
 
@@ -141,10 +142,8 @@ stat_req_numbers :: proc(available: u32, required: u32) -> cstring {
 
 stat_kind_uses_icon :: proc(kind: Stat_Kind) -> bool {
 	switch kind {
-	case .Fish_Given, .Bread_Given:
-		return food.ready()
-	case .Total_Served, .Distance_Walked:
-		return ui.ready()
+	case .Fish_Given, .Bread_Given, .Total_Served, .Distance_Walked:
+		return assets.gameplay_ready()
 	case .Fed_Kids, .Fed_Young, .Fed_Adults:
 		return false
 	}
@@ -153,7 +152,7 @@ stat_kind_uses_icon :: proc(kind: Stat_Kind) -> bool {
 
 stat_symbol_width :: proc(kind: Stat_Kind, font: i32) -> f32 {
 	if stat_kind_uses_icon(kind) {
-		return ui.UI_ICON_DRAW_SIZE
+		return assets.ui_layout().icon_draw_size
 	}
 	return f32(rl.MeasureText(stat_kind_short(kind), font))
 }
@@ -166,25 +165,27 @@ draw_stat_symbol :: proc(
 	font: i32,
 	text_color: rl.Color,
 ) {
-	symbol_col := ui.UI_ICON_DRAW_SIZE
+	symbol_col := assets.ui_layout().icon_draw_size
 	cy := row_top + row_h * 0.5
 	if stat_kind_uses_icon(kind) {
 		cx := left_x + symbol_col * 0.5
+		fish := assets.fish_grid()
+		bread := assets.bread_grid()
 		switch kind {
 		case .Fish_Given:
 			food.draw_icon(
-				food.fish_tex,
+				assets.atlas(.Fish),
 				STAT_BUBBLE_ICON_INDEX,
-				f32(food.FISH_CELL_SIZE),
-				food.FISH_ATLAS_COLS,
+				fish.cell,
+				fish.cols,
 				{cx, cy},
 			)
 		case .Bread_Given:
 			food.draw_icon(
-				food.bread_tex,
+				assets.atlas(.Bread),
 				STAT_BUBBLE_ICON_INDEX,
-				f32(food.BREAD_CELL_SIZE),
-				food.BREAD_ATLAS_COLS,
+				bread.cell,
+				bread.cols,
 				{cx, cy},
 			)
 		case .Total_Served:

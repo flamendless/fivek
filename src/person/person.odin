@@ -2,7 +2,9 @@ package person
 
 import "core:math/rand"
 import rl "vendor:raylib"
+import "../character"
 import "../currency"
+import "../wardrobe"
 import "../world"
 
 WALK_SPEED :: 28.0
@@ -121,6 +123,8 @@ Person_Motion :: struct {
 	last_roam: Person_State,
 	hop_step, hop_count: u8,
 	hop_timer: f32,
+	idle_anim_t: f32,
+	walk_anim_t: f32,
 }
 
 Person_Traits :: struct {
@@ -128,6 +132,7 @@ Person_Traits :: struct {
 	color: rl.Color,
 	speed_scale: f32,
 	draw_alpha: f32,
+	appearance: wardrobe.Appearance,
 }
 
 Person_Food :: struct {
@@ -256,12 +261,14 @@ init_people :: proc(spawn: #soa[]world.Spawn_Person, lineup_chunk_width: f32, li
 				state = .Idle,
 				phase = .Active,
 				timer = rand_float_range(0.5, 2.0),
+				idle_anim_t = rand_float_range(0, f32(wardrobe.IDLE_FRAMES) / character.ANIM_FPS),
 			},
 			traits = {
 				age = age_from_u8(s.age),
 				speed_scale = s.speed_scale,
 				color = color_from_u32(s.color),
 				draw_alpha = 1,
+				appearance = wardrobe.roll(),
 			},
 			identity = {
 				role = .Crowd,

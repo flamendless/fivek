@@ -2,6 +2,7 @@ package person
 
 import "core:fmt"
 import "core:math/rand"
+import "../assets"
 import "../currency"
 
 COIN_DROP_CHANCE :: 40
@@ -9,8 +10,9 @@ COIN_DROP_CHANCE :: 40
 spawn_run_home_coin :: proc(p: ^People, person_i: int) {
 	row := &p.rows[person_i]
 	cx := row.transform.pos_x + row.transform.size_w * 0.5
-	cy := p.lineup.ground_y - currency.COIN_ICON_DRAW_SIZE * 0.5 + 2
-	icon := u8(rand.int_max(currency.COIN_ICON_COUNT))
+	coin := assets.coin_layout()
+	cy := p.lineup.ground_y - coin.icon_draw_size * 0.5 + 2
+	icon := u8(rand.int_max(coin.icon_count))
 	fmt.printf(
 		"[coin] person index=%d run_home drop icon=%d at (%.1f, %.1f)\n",
 		person_i,

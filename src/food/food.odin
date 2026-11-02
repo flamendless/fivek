@@ -1,9 +1,8 @@
 package food
 
+import "../assets"
 import "core:math"
 import rl "vendor:raylib"
-
-FOOD_ICON_DRAW_SIZE: f32 : 16
 
 atlas_src_rect :: proc(index: int, cell: f32, cols: int) -> rl.Rectangle {
 	col := index % cols
@@ -17,9 +16,10 @@ draw_icon :: proc(
 	cell: f32,
 	cols: int,
 	center: rl.Vector2,
-	size: f32 = FOOD_ICON_DRAW_SIZE,
+	size: f32 = 0,
 ) {
-	draw_icon_tinted_rotated(tex, index, cell, cols, center, size, rl.WHITE, 0)
+	draw_size := size > 0 ? size : assets.food_icon_draw_size()
+	draw_icon_tinted_rotated(tex, index, cell, cols, center, draw_size, rl.WHITE, 0)
 }
 
 icon_dest_rect :: proc(center: rl.Vector2, size: f32) -> rl.Rectangle {
@@ -51,7 +51,6 @@ draw_icon_tinted_in_dest :: proc(
 	rotation_deg: f32,
 ) {
 	src := atlas_src_rect(index, cell, cols)
-	// raylib: when rotation==0, top-left is (dest.x - origin.x, dest.y - origin.y); use {} so dest matches hit rects (coins/social).
 	rl.DrawTexturePro(tex, src, dest, {}, rotation_deg, tint)
 }
 
@@ -97,23 +96,4 @@ draw_oriented_icon_outline :: proc(
 		j := (i + 1) % 4
 		rl.DrawLineEx(corners[i], corners[j], line_w, color)
 	}
-}
-
-ready :: proc() -> bool {
-	return fish_ready() && bread_ready()
-}
-
-load :: proc() {
-	if ready() {
-		return
-	}
-	if !load_fish() || !load_bread() {
-		unload_fish()
-		unload_bread()
-	}
-}
-
-unload :: proc() {
-	unload_fish()
-	unload_bread()
 }

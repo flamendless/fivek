@@ -2,8 +2,8 @@ package person
 
 import "core:math"
 import "core:math/rand"
+import "../assets"
 import "../config"
-import "../food"
 
 begin_post_serve :: proc(p: ^People, person_i: int, stats: ^Run_Stats) {
 	p.rows[person_i].food.served = true
@@ -60,6 +60,7 @@ move_toward_target :: proc(p: ^People, i: int, dt: f32) -> bool {
 	speed := RUN_SPEED * POST_SERVE_SPEED_MULT * p.rows[i].traits.speed_scale
 	p.rows[i].transform.pos_x += p.rows[i].transform.dir * speed * dt
 	p.rows[i].transform.pos_y = p.rows[i].nav.target_y
+	p.rows[i].motion.walk_anim_t += dt
 	return false
 }
 
@@ -70,9 +71,9 @@ when config.IS_DEBUG {
 				continue
 			}
 			p.rows[i].food.has_fish = true
-			p.rows[i].food.fish_icon = u8(rand.int_max(food.FISH_ICON_COUNT))
+			p.rows[i].food.fish_icon = u8(rand.int_max(assets.fish_grid().icon_count))
 			p.rows[i].food.has_bread = true
-			p.rows[i].food.bread_icon = u8(rand.int_max(food.BREAD_ICON_COUNT))
+			p.rows[i].food.bread_icon = u8(rand.int_max(assets.bread_grid().icon_count))
 			p.rows[i].behavior.subbehavior = .None
 			p.rows[i].behavior.flee_remaining = 0
 			begin_post_serve(p, i, nil)

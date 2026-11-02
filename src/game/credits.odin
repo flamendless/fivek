@@ -3,6 +3,7 @@ package game
 import "core:math"
 import "core:math/rand"
 import rl "vendor:raylib"
+import "../assets"
 import "../food"
 import "../person"
 import "../social"
@@ -149,8 +150,9 @@ credits_init_wiggle :: proc(g: ^Game, r: ^Credit_Asset_Runtime) {
 
 credits_init_asset :: proc(g: ^Game, index: int, r: ^Credit_Asset_Runtime) {
 	r.use_bread = rand.int_max(2) == 0
-	r.icon =
-		r.use_bread ? rand.int_max(food.BREAD_ICON_COUNT) : rand.int_max(food.FISH_ICON_COUNT)
+	bread := assets.bread_grid()
+	fish := assets.fish_grid()
+	r.icon = r.use_bread ? rand.int_max(bread.icon_count) : rand.int_max(fish.icon_count)
 	r.size = credits_random_asset_size(g)
 	r.anchor = credits_asset_anchor(g, index)
 	credits_init_wiggle(g, r)
@@ -308,7 +310,7 @@ draw_credits :: proc(g: ^Game) {
 
 	sx, sy, ssize, sgap := credits_social_layout(g)
 	social.draw_row_at(
-		g.title.social_atlas,
+		assets.atlas(.Social),
 		g.title.hovered_social,
 		true,
 		sx,
@@ -318,8 +320,10 @@ draw_credits :: proc(g: ^Game) {
 		g.view.ui_scale,
 	)
 
-	if food.ready() {
+	if assets.gameplay_ready() {
 		line_w := f32(max(ui_px(g, 1), 1))
+		bread := assets.bread_grid()
+		fish := assets.fish_grid()
 		for i in 0 ..< CREDIT_ASSET_COUNT {
 			r := &g.credits.assets[i]
 			dest := credits_asset_dest(r)
@@ -328,9 +332,9 @@ draw_credits :: proc(g: ^Game) {
 			if g.credits.hovered_asset == i {
 				tint = theme.SOCIAL_ICON_HOVER
 			}
-			tex := r.use_bread ? food.bread_tex : food.fish_tex
-			cell := r.use_bread ? f32(food.BREAD_CELL_SIZE) : f32(food.FISH_CELL_SIZE)
-			cols := r.use_bread ? food.BREAD_ATLAS_COLS : food.FISH_ATLAS_COLS
+			tex := r.use_bread ? assets.atlas(.Bread) : assets.atlas(.Fish)
+			cell := r.use_bread ? bread.cell : fish.cell
+			cols := r.use_bread ? bread.cols : fish.cols
 			food.draw_icon_tinted_in_dest(tex, r.icon, cell, cols, dest, tint, rot)
 			if g.credits.hovered_asset == i {
 				rl.DrawRectangleLinesEx(dest, line_w, rl.RED)

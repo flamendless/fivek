@@ -1,9 +1,7 @@
 package game
 
 import "core:log"
-import "../currency"
-import "../food"
-import "../ui"
+import "../assets"
 import rl "vendor:raylib"
 
 Web_Runtime :: struct {
@@ -29,20 +27,14 @@ web_start :: proc() {
 	log.info("initializing window")
 	init_window(web.game)
 
-	log.info("loading splash assets")
-	load_splash_assets(web.game)
+	log.info("loading boot assets")
+	assets.load_boot()
 
 	log.info("loading title assets")
 	load_title_assets(web.game)
 
-	log.info("loading food")
-	food.load()
-
-	log.info("loading currency")
-	currency.load()
-
-	log.info("loading UI")
-	ui.load()
+	log.info("loading gameplay assets")
+	assets.load_gameplay()
 
 	rl.SetTargetFPS(0)
 }
@@ -57,10 +49,6 @@ web_update :: proc() -> bool {
 }
 
 web_end :: proc() {
-	log.info("unloading UI")
-	ui.unload()
-	log.info("unloading currency")
-	currency.unload()
 	log.info("closing game")
 	if web.game != nil {
 		close(web.game)

@@ -4,7 +4,9 @@ import "core:fmt"
 import "core:log"
 import "core:math"
 import "core:math/rand"
+import "core:strings"
 import rl "vendor:raylib"
+import "../assets"
 import "../theme"
 
 PATH_BUF_SIZE :: 96
@@ -54,6 +56,7 @@ Config :: struct {
 Screen_Pattern :: struct {
 	config:          Config,
 	tex:             rl.Texture2D,
+	cached_path:     string,
 	offset:          rl.Vector2,
 	loaded_variant:  Variant,
 	loaded_sub:      u8,
@@ -108,10 +111,11 @@ pattern_path :: proc(variant: Variant, sub: u8, buf: []u8) -> (cstring, bool) {
 
 @(private = "file")
 unload_tex :: proc(p: ^Screen_Pattern) {
-	if p.tex.id != 0 {
-		rl.UnloadTexture(p.tex)
-		p.tex = {}
+	if p.cached_path != "" {
+		assets.release_texture_key(p.cached_path)
+		delete(p.cached_path)
 	}
+	p.tex = {}
 	p.loaded_sub = 0
 }
 
@@ -124,14 +128,13 @@ load_tex :: proc(p: ^Screen_Pattern, variant: Variant, sub: u8) -> bool {
 		return false
 	}
 	log.infof("pattern_bg: loading %s", path)
-	tex := rl.LoadTexture(path)
-	if tex.id == 0 {
+	unload_tex(p)
+	tex, loaded := assets.acquire_texture(path, assets.PATTERN_TEXTURE_OPTS)
+	if !loaded {
 		log.warnf("pattern_bg: failed to load %s", path)
 		return false
 	}
-	rl.SetTextureFilter(tex, .BILINEAR)
-	rl.SetTextureWrap(tex, .REPEAT)
-	unload_tex(p)
+	p.cached_path = strings.clone(string(path))
 	p.tex = tex
 	p.loaded_variant = variant
 	p.loaded_sub = sub

@@ -4,6 +4,7 @@ import "core:log"
 import "core:math"
 import "core:math/rand"
 import rl "vendor:raylib"
+import "../assets"
 import "../food"
 
 TITLE_FX_SPAWN_MIN :: 1.2
@@ -52,7 +53,7 @@ Game_Title_Fx :: struct {
 title_fx_randomize_bread :: proc(g: ^Game, reason: cstring) {
 	fx := &g.title.fx
 	prev := fx.bread_icon
-	fx.bread_icon = rand.int_max(food.BREAD_ICON_COUNT)
+	fx.bread_icon = rand.int_max(assets.bread_grid().icon_count)
 	log.infof("title fx: bread icon %d -> %d (%s)", prev, fx.bread_icon, reason)
 }
 
@@ -155,7 +156,7 @@ title_fx_spawn_points :: proc(
 
 title_fx_spawn_one_fish :: proc(g: ^Game) -> bool {
 	fx := &g.title.fx
-	if !food.ready() {
+	if !assets.gameplay_ready() {
 		return false
 	}
 	if len(fx.fish) >= TITLE_FX_MAX_FISH {
@@ -170,7 +171,7 @@ title_fx_spawn_one_fish :: proc(g: ^Game) -> bool {
 	edge := edges[rand.int_max(len(edges))]
 	start, end := title_fx_spawn_points(g, edge)
 	path_len := max(rl.Vector2Distance(start, end), 1.0)
-	icon := rand.int_max(food.FISH_ICON_COUNT)
+	icon := rand.int_max(assets.fish_grid().icon_count)
 	append(
 		&fx.fish,
 		Title_Fish {
@@ -200,7 +201,7 @@ title_fx_spawn_one_fish :: proc(g: ^Game) -> bool {
 
 title_fx_begin_wave :: proc(g: ^Game) {
 	fx := &g.title.fx
-	if !food.ready() {
+	if !assets.gameplay_ready() {
 		log.warn("title fx: spawn wave skipped (food atlases not ready)")
 		return
 	}
@@ -314,7 +315,7 @@ title_fx_destroy_all_fish :: proc(g: ^Game, reason: cstring) {
 
 title_fx_update :: proc(g: ^Game, dt: f32, frozen: bool) {
 	fx := &g.title.fx
-	if !fx.active || !food.ready() {
+	if !fx.active || !assets.gameplay_ready() {
 		return
 	}
 
@@ -365,37 +366,37 @@ title_fx_update :: proc(g: ^Game, dt: f32, frozen: bool) {
 
 title_fx_draw_fish :: proc(g: ^Game) {
 	fx := &g.title.fx
-	if !food.ready() {
+	if !assets.gameplay_ready() {
 		return
 	}
-	cell := f32(food.FISH_CELL_SIZE)
-	cols := food.FISH_ATLAS_COLS
+	fish := assets.fish_grid()
 
 	for &f in fx.fish {
 		pos := title_fx_fish_pos(&f)
 		delta := f.end - f.start
 		rot := math.atan2(delta.y, delta.x) * (180.0 / math.PI)
 
-		src := food.atlas_src_rect(f.icon, cell, cols)
+		src := assets.atlas_src_rect(f.icon, fish)
 		half := f.draw_size * 0.5
 		dest := rl.Rectangle{pos.x - half, pos.y - half, f.draw_size, f.draw_size}
 		origin := rl.Vector2{half, half}
-		rl.DrawTexturePro(food.fish_tex, src, dest, origin, rot, rl.WHITE)
+		rl.DrawTexturePro(assets.atlas(.Fish), src, dest, origin, rot, rl.WHITE)
 	}
 }
 
 title_fx_draw_bread :: proc(g: ^Game) {
 	fx := &g.title.fx
-	if !food.ready() {
+	if !assets.gameplay_ready() {
 		return
 	}
 	mouse := ui_mouse_game_pos(g)
 	size := title_fx_bread_size(g)
+	bread := assets.bread_grid()
 	food.draw_icon(
-		food.bread_tex,
+		assets.atlas(.Bread),
 		fx.bread_icon,
-		f32(food.BREAD_CELL_SIZE),
-		food.BREAD_ATLAS_COLS,
+		bread.cell,
+		bread.cols,
 		mouse,
 		size,
 	)

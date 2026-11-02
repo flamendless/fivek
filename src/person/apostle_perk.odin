@@ -5,8 +5,8 @@ import "core:math"
 import "core:math/rand"
 import "../config"
 import rl "vendor:raylib"
+import "../assets"
 import "../currency"
-import "../food"
 import "../theme"
 import w "../world"
 
@@ -591,7 +591,7 @@ tick_active_perk :: proc(p: ^People, i: int, ctx: Apostle_Perk_Ctx, dt: f32) {
 			row.perk.perk_bubble = {
 				kind = .Judas_Coin,
 				timer = row.perk.perk_timer,
-				coin_icon = u8(rand.int_max(currency.COIN_ICON_COUNT)),
+				coin_icon = u8(rand.int_max(assets.COIN_ICON_COUNT)),
 			}
 		}
 	case .Judas_Talk:

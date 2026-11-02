@@ -1,6 +1,7 @@
 package game
 
 import rl "vendor:raylib"
+import "../assets"
 import "../currency"
 import "../food"
 import "../person"
@@ -27,6 +28,8 @@ row_icon_layout_width :: proc(icon: UI_Row_Icon, nominal_size: f32) -> f32 {
 }
 
 draw_row_icon :: proc(icon: UI_Row_Icon, center: rl.Vector2, size: f32) {
+	fish := assets.fish_grid()
+	bread := assets.bread_grid()
 	switch icon {
 	case .People:
 		ui_assets.draw_texture_icon(ui_assets.texture(.People), center, size)
@@ -34,24 +37,24 @@ draw_row_icon :: proc(icon: UI_Row_Icon, center: rl.Vector2, size: f32) {
 		ui_assets.draw_texture_icon(ui_assets.texture(.Sandals), center, size)
 	case .Fish:
 		food.draw_icon(
-			food.fish_tex,
+			assets.atlas(.Fish),
 			person.STAT_BUBBLE_ICON_INDEX,
-			f32(food.FISH_CELL_SIZE),
-			food.FISH_ATLAS_COLS,
+			fish.cell,
+			fish.cols,
 			center,
 			size,
 		)
 	case .Bread:
 		food.draw_icon(
-			food.bread_tex,
+			assets.atlas(.Bread),
 			person.STAT_BUBBLE_ICON_INDEX,
-			f32(food.BREAD_CELL_SIZE),
-			food.BREAD_ATLAS_COLS,
+			bread.cell,
+			bread.cols,
 			center,
 			size,
 		)
 	case .Coin:
-		currency.draw_coin_icon_sized(currency.HUD_COIN_ICON, center, size)
+		currency.draw_coin_icon_sized(assets.HUD_COIN_ICON, center, size)
 	case .Hourglass:
 		ui_assets.draw_hourglass_icon(center, size)
 	case .General_Play:

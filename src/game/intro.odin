@@ -1,11 +1,9 @@
 package game
 
-import "core:log"
 import "core:math"
+import "../assets"
 import rl "vendor:raylib"
 import "../theme"
-
-SPLASH_LOGO_PATH :: "assets/flamendless_logo.png"
 
 SPLASH_DURATION: f32 = 3.0
 SPLASH_FADE_IN: f32 = 1.0
@@ -16,29 +14,7 @@ SPLASH_LOGO_MAX_FRAC: f32 = 0.75
 SPLASH_BYLINE: cstring = "a game by: flamendless"
 
 Game_Splash :: struct {
-	logo:    rl.Texture2D,
 	elapsed: f32,
-}
-
-load_splash_assets :: proc(g: ^Game) {
-	if g.splash.logo.id != 0 {
-		return
-	}
-	log.infof("loading splash logo %s", SPLASH_LOGO_PATH)
-	g.splash.logo = rl.LoadTexture(SPLASH_LOGO_PATH)
-	if g.splash.logo.id == 0 {
-		log.warnf("failed to load splash logo %s", SPLASH_LOGO_PATH)
-	} else {
-		rl.SetTextureFilter(g.splash.logo, .POINT)
-	}
-}
-
-unload_splash_assets :: proc(g: ^Game) {
-	if g.splash.logo.id != 0 {
-		log.infof("unloading splash logo %s", SPLASH_LOGO_PATH)
-		rl.UnloadTexture(g.splash.logo)
-		g.splash.logo = {}
-	}
 }
 
 intro_skip_pressed :: proc() -> bool {
@@ -98,9 +74,10 @@ draw_splash :: proc(g: ^Game) {
 	byline_y := ui_px(g, 28)
 	rl.DrawText(SPLASH_BYLINE, byline_x, byline_y, byline_font, text_color)
 
-	if g.splash.logo.id != 0 && alpha > 0 {
-		tw := f32(g.splash.logo.width)
-		th := f32(g.splash.logo.height)
+	logo := assets.boot_splash()
+	if logo.id != 0 && alpha > 0 {
+		tw := f32(logo.width)
+		th := f32(logo.height)
 		max_w := g.view.game_size.x * SPLASH_LOGO_MAX_FRAC
 		max_h := g.view.game_size.y * SPLASH_LOGO_MAX_FRAC
 		scale := math.min(max_w / tw, max_h / th)
@@ -114,7 +91,7 @@ draw_splash :: proc(g: ^Game) {
 		}
 		src := rl.Rectangle{0, 0, tw, th}
 		tint := theme.white_alpha(a)
-		rl.DrawTexturePro(g.splash.logo, src, dest, {}, 0, tint)
+		rl.DrawTexturePro(logo, src, dest, {}, 0, tint)
 	}
 
 	if g.prefs.intro_seen {

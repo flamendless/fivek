@@ -4,10 +4,10 @@ import "core:fmt"
 import "core:log"
 import "core:math"
 import rl "vendor:raylib"
+import "../assets"
 import "../config"
 import "../currency"
 import "../input"
-import "../food"
 import "../person"
 import "../player"
 import w "../world"
@@ -244,9 +244,10 @@ close :: proc(g: ^Game) {
 	free(g.scene.ground)
 	free(g.scene.player)
 	free_parallax_bg(g.scene.bg)
-	unload_splash_assets(g)
 	unload_title_assets(g)
-	food.unload()
+	assets.unload_gameplay()
+	assets.unload_boot()
+	assets.cache_log_remaining()
 	delete(g.run.served_bits)
 	delete(g.run.apostle_bits)
 	free(g)

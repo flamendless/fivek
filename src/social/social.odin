@@ -1,11 +1,9 @@
 package social
 
+import "../assets"
 import rl "vendor:raylib"
 import "../theme"
 
-ATLAS_PATH :: "assets/social/atlas.png"
-CELL_SIZE: f32 : 32
-ATLAS_COLS :: 11
 LINK_COUNT :: 4
 
 Link :: struct {
@@ -36,15 +34,7 @@ row_width :: proc(size: f32, gap: f32) -> f32 {
 }
 
 atlas_src :: proc(atlas_index: int) -> rl.Rectangle {
-	i := atlas_index - 1
-	col := i % ATLAS_COLS
-	row := i / ATLAS_COLS
-	return {
-		f32(col) * CELL_SIZE,
-		f32(row) * CELL_SIZE,
-		CELL_SIZE,
-		CELL_SIZE,
-	}
+	return assets.social_atlas_src(atlas_index)
 }
 
 layout :: proc(game_size: rl.Vector2, ui_scale: f32) -> (x: f32, y: f32, size: f32, gap: f32) {

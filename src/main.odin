@@ -3,9 +3,7 @@ package main
 import "core:log"
 import "config"
 import "game"
-import "currency"
-import "food"
-import "ui"
+import "assets"
 
 when config.IS_AUTOTEST {
 	main :: proc() {
@@ -31,26 +29,16 @@ when config.IS_AUTOTEST {
 		log.info("initializing window")
 		game.init_window(g)
 
-		log.info("loading splash assets")
-		game.load_splash_assets(g)
+		log.info("loading boot assets")
+		assets.load_boot()
 
 		log.info("loading title assets")
 		game.load_title_assets(g)
 
-		log.info("loading food")
-		food.load()
-
-		log.info("loading currency")
-		currency.load()
-
-		log.info("loading UI")
-		ui.load()
+		log.info("loading gameplay assets")
+		assets.load_gameplay()
 
 		defer {
-			log.info("unloading UI")
-			ui.unload()
-			log.info("unloading currency")
-			currency.unload()
 			log.info("closing window")
 			game.close_window()
 		}

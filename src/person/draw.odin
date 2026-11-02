@@ -1,7 +1,10 @@
 package person
 
+import "../assets"
+import "../character"
 import "../food"
 import "../theme"
+import "../wardrobe"
 import rl "vendor:raylib"
 
 FOOD_BUBBLE_ABOVE :: 8.0
@@ -24,12 +27,14 @@ food_bubble_visible :: proc(p: ^People, i: int) -> bool {
 }
 
 draw_food_bubble :: proc(p: ^People, i: int) {
-	if !food.ready() {
+	if !assets.gameplay_ready() {
 		return
 	}
 	row := p.rows[i]
 	pcx := row.transform.pos_x + row.transform.size_w * 0.5
-	icon_d := food.FOOD_ICON_DRAW_SIZE
+	icon_d := assets.food_icon_draw_size()
+	fish := assets.fish_grid()
+	bread := assets.bread_grid()
 	icon_r := icon_d * 0.5
 	gap: f32 = 4
 	inner_w: f32 = icon_d
@@ -48,33 +53,33 @@ draw_food_bubble :: proc(p: ^People, i: int) {
 		fish_x := bx + f32(BUBBLE_PAD) + icon_r
 		bread_x := bx + bubble_w - f32(BUBBLE_PAD) - icon_r
 		food.draw_icon(
-			food.fish_tex,
+			assets.atlas(.Fish),
 			int(row.food.fish_icon),
-			f32(food.FISH_CELL_SIZE),
-			food.FISH_ATLAS_COLS,
+			fish.cell,
+			fish.cols,
 			{fish_x, cy},
 		)
 		food.draw_icon(
-			food.bread_tex,
+			assets.atlas(.Bread),
 			int(row.food.bread_icon),
-			f32(food.BREAD_CELL_SIZE),
-			food.BREAD_ATLAS_COLS,
+			bread.cell,
+			bread.cols,
 			{bread_x, cy},
 		)
 	} else if row.food.has_fish {
 		food.draw_icon(
-			food.fish_tex,
+			assets.atlas(.Fish),
 			int(row.food.fish_icon),
-			f32(food.FISH_CELL_SIZE),
-			food.FISH_ATLAS_COLS,
+			fish.cell,
+			fish.cols,
 			{pcx, cy},
 		)
 	} else {
 		food.draw_icon(
-			food.bread_tex,
+			assets.atlas(.Bread),
 			int(row.food.bread_icon),
-			f32(food.BREAD_CELL_SIZE),
-			food.BREAD_ATLAS_COLS,
+			bread.cell,
+			bread.cols,
 			{pcx, cy},
 		)
 	}
@@ -96,6 +101,16 @@ draw_food_bubbles :: proc(p: ^People, view: rl.Rectangle) {
 	}
 }
 
+crowd_motion_kind :: proc(state: Person_State) -> wardrobe.Motion_Kind {
+	switch state {
+	case .Walking, .Running:
+		return .Walk
+	case .Idle, .Celebrating:
+		return .Idle
+	}
+	return .Idle
+}
+
 draw_people :: proc(p: ^People, view: rl.Rectangle) {
 	for i in 0 ..< len(p.rows) {
 		if p.rows[i].motion.phase == .Gone {
@@ -105,15 +120,23 @@ draw_people :: proc(p: ^People, view: rl.Rectangle) {
 		if !rl.CheckCollisionRecs(pr, view) {
 			continue
 		}
-		col := p.rows[i].traits.color
-		if p.rows[i].identity.role == .Apostle && p.rows[i].traits.draw_alpha < 1 {
-			col.a = u8(f32(col.a) * p.rows[i].traits.draw_alpha)
+		row := p.rows[i]
+		if row.identity.role == .Crowd && assets.crowd_ready() {
+			character.draw_crowd(
+				pr,
+				row.traits.appearance,
+				crowd_motion_kind(row.motion.state),
+				row.transform.dir,
+				row.motion.idle_anim_t,
+				row.motion.walk_anim_t,
+			)
+			continue
 		}
-		rl.DrawRectangleV(
-			{p.rows[i].transform.pos_x, p.rows[i].transform.pos_y},
-			{p.rows[i].transform.size_w, p.rows[i].transform.size_h},
-			col,
-		)
+		col := row.traits.color
+		if row.identity.role == .Apostle && row.traits.draw_alpha < 1 {
+			col.a = u8(f32(col.a) * row.traits.draw_alpha)
+		}
+		rl.DrawRectangleV({row.transform.pos_x, row.transform.pos_y}, {row.transform.size_w, row.transform.size_h}, col)
 	}
 }
 

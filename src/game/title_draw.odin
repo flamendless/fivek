@@ -2,6 +2,7 @@ package game
 
 import "core:fmt"
 import rl "vendor:raylib"
+import "../assets"
 import "../pattern_bg"
 import "../social"
 
@@ -54,7 +55,7 @@ draw_title :: proc(g: ^Game) {
 		menu_y += menu_step
 	}
 
-	social.draw_row(g.title.social_atlas, g.title.hovered_social, true, g.view.game_size, g.view.ui_scale)
+	social.draw_row(assets.atlas(.Social), g.title.hovered_social, true, g.view.game_size, g.view.ui_scale)
 
 	ver := fmt.ctprintf("build: v%s", g.defs.version)
 	ver_m := title_measure_default(g, ver, TITLE_VERSION_FONT_DESIGN)
