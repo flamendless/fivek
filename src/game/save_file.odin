@@ -5,15 +5,6 @@ import "core:log"
 import "core:os"
 import "../person"
 
-Run_Save_Out :: struct {
-	ok:                bool,
-	play_time:         f32,
-	run_phase:         Run_Phase,
-	epilogue_face:     bool,
-	epilogue_sub:      u8,
-	epilogue_player_x: f32,
-}
-
 load_save :: proc(
 	path: string,
 	seed: u64,
