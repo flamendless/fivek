@@ -45,11 +45,11 @@ draw_title :: proc(g: ^Game) {
 	y += m.y + headline_gap
 
 	_, menu_y := title_menu_layout(g, menu_size, menu_spacing, menu_step)
-	items := [6]Title_Menu{.Primary, .Tutorial, .Stats, .Settings, .Credits, .Exit}
-	for item in items {
+	for slot in 0 ..< title_menu_slot_count(g) {
+		item := title_menu_slot_item(g, slot)
 		label := title_menu_label(item, g)
 		color := rl.BLACK
-		if g.title.hovered_menu == int(item) {
+		if g.title.hovered_menu == slot {
 			color = rl.WHITE
 		}
 		title_draw_centered(g, label, menu_y, menu_size, menu_spacing, color)

@@ -35,12 +35,12 @@ update_title :: proc(g: ^Game) {
 	menu_step := f32(ui_px(g, 28))
 	_, menu_y := title_menu_layout(g, menu_size, menu_spacing, menu_step)
 
-	items := [6]Title_Menu{.Primary, .Tutorial, .Stats, .Settings, .Credits, .Exit}
-	for item in items {
+	for slot in 0 ..< title_menu_slot_count(g) {
+		item := title_menu_slot_item(g, slot)
 		label := title_menu_label(item, g)
 		bounds := title_text_bounds(g, label, menu_y, menu_size, menu_spacing)
 		if rl.CheckCollisionPointRec(mouse, bounds) {
-			g.title.hovered_menu = int(item)
+			g.title.hovered_menu = slot
 			if clicked {
 				title_menu_action(g, item)
 				return
@@ -58,10 +58,14 @@ title_menu_action :: proc(g: ^Game, item: Title_Menu) {
 	switch item {
 	case .Primary:
 		title_run_primary(g)
+	case .New_Game:
+		title_run_new_game(g)
 	case .Tutorial:
 		enter_tutorial(g, false)
 	case .Stats:
 		enter_stats(g)
+	case .Achievements:
+		enter_achievements(g)
 	case .Settings:
 		g.title.settings_open = true
 	case .Credits:
@@ -75,10 +79,14 @@ title_menu_label :: proc(item: Title_Menu, g: ^Game) -> cstring {
 	switch item {
 	case .Primary:
 		return title_primary_label(g)
+	case .New_Game:
+		return "New Game"
 	case .Tutorial:
 		return "Tutorial"
 	case .Stats:
 		return "Stats"
+	case .Achievements:
+		return "Achievements"
 	case .Settings:
 		return "Settings"
 	case .Credits:

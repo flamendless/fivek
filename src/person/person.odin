@@ -2,6 +2,7 @@ package person
 
 import "core:math/rand"
 import rl "vendor:raylib"
+import "../achievements"
 import "../character"
 import "../currency"
 import "../wardrobe"
@@ -206,11 +207,16 @@ People :: struct {
 	party: People_Party,
 	apostle_requirements: [APOSTLE_COUNT]Apostle_Requirements,
 	apostle_reject_speech: [APOSTLE_COUNT]u8,
-	run_stats:    ^Run_Stats,
-	career_stats: ^Career_Stats,
+	run_stats:           ^Run_Stats,
+	career_stats:        ^Career_Stats,
+	achievement_state:   ^achievements.State,
+	achievement_pending: ^[dynamic]achievements.Id,
 	coin_drops:   ^[dynamic]currency.Dropped_Coin,
 	escort: People_Escort,
 	debug: People_Debug,
+	epilogue_active:       bool,
+	epilogue_apostle_chunk: int,
+	epilogue_spawn_chunk:   int,
 }
 
 age_from_u8 :: proc(v: u8) -> Person_Age {

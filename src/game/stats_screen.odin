@@ -4,7 +4,6 @@ import "core:fmt"
 import rl "vendor:raylib"
 import "../person"
 import "../theme"
-import ui_assets "../ui"
 
 STATS_HEADER_DESIGN :: 22
 STATS_SECTION_FONT_DESIGN :: 11
@@ -13,10 +12,6 @@ STATS_ROW_ICON_DESIGN :: 16
 STATS_APOSTLE_FONT_DESIGN :: 9
 STATS_CONTENT_COLS :: 3
 STATS_APOSTLE_COLS :: 2
-
-STATS_AGE_ICON_KID :: 0.62
-STATS_AGE_ICON_YOUNG :: 0.82
-STATS_AGE_ICON_ADULT :: 1.0
 
 stats_kind_label :: proc(kind: person.Stat_Kind) -> cstring {
 	if kind == .Distance_Walked {
@@ -65,27 +60,6 @@ stats_draw_stat_kind_row :: proc(g: ^Game, col_x, y, col_w: i32, font: i32, kind
 	person.draw_stat_symbol(kind, left, f32(y), row_h, font, rl.WHITE)
 	text_x := col_x + pad + i32(layout_w) + i32(UI_ICON_TEXT_GAP)
 	rl.DrawText(stats_kind_label(kind), text_x, y, font, rl.LIGHTGRAY)
-	val := fmt.ctprintf("%d", value)
-	vx := stats_value_column_x(col_x, col_w, pad, val, font)
-	rl.DrawText(val, vx, y, font, rl.WHITE)
-}
-
-stats_draw_fed_age_row :: proc(
-	g: ^Game,
-	col_x, y, col_w: i32,
-	font: i32,
-	icon_slot: f32,
-	head_scale: f32,
-	label: cstring,
-	value: u32,
-) {
-	pad := ui_px(g, 4)
-	draw_size := icon_slot * head_scale
-	icon_cx := f32(col_x+pad) + icon_slot*0.5
-	cy := f32(y) + f32(font)*0.5
-	ui_assets.draw_texture_icon(ui_assets.texture(.People), {icon_cx, cy}, draw_size)
-	text_x := col_x + pad + i32(icon_slot) + i32(UI_ICON_TEXT_GAP)
-	rl.DrawText(label, text_x, y, font, rl.LIGHTGRAY)
 	val := fmt.ctprintf("%d", value)
 	vx := stats_value_column_x(col_x, col_w, pad, val, font)
 	rl.DrawText(val, vx, y, font, rl.WHITE)
@@ -144,11 +118,11 @@ stats_draw_serving_column :: proc(g: ^Game, c: ^person.Career_Stats, col_x, col_
 	y += step
 	stats_draw_stat_kind_row(g, col_x, y, col_w, font, .Bread_Given, c.lifetime.bread_given)
 	y += step
-	stats_draw_fed_age_row(g, col_x, y, col_w, font, icon, STATS_AGE_ICON_KID, "Kids", c.lifetime.fed_kids)
+	stats_draw_stat_kind_row(g, col_x, y, col_w, font, .Fed_Kids, c.lifetime.fed_kids)
 	y += step
-	stats_draw_fed_age_row(g, col_x, y, col_w, font, icon, STATS_AGE_ICON_YOUNG, "Young", c.lifetime.fed_young)
+	stats_draw_stat_kind_row(g, col_x, y, col_w, font, .Fed_Young, c.lifetime.fed_young)
 	y += step
-	stats_draw_fed_age_row(g, col_x, y, col_w, font, icon, STATS_AGE_ICON_ADULT, "Adults", c.lifetime.fed_adults)
+	stats_draw_stat_kind_row(g, col_x, y, col_w, font, .Fed_Adults, c.lifetime.fed_adults)
 }
 
 stats_draw_journey_column :: proc(g: ^Game, c: ^person.Career_Stats, col_x, col_w, y0: i32) {

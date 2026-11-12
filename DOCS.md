@@ -15,9 +15,9 @@
 | **Served** (`Total_Served`) | Full serve: crowd member has fish and bread and enters post-serve | [assets/ui/people.png](assets/ui/people.png) |
 | **Fish** (`Fish_Given`) | Fish handed out | [assets/fishes/fishes.png](assets/fishes/fishes.png) (atlas; cell index 0) |
 | **Bread** (`Bread_Given`) | Bread handed out | [assets/breads/breads.png](assets/breads/breads.png) (atlas; cell index 0) |
-| **Kids** (`Fed_Kids`) | Kid served | — (text label only) |
-| **Young** (`Fed_Young`) | Young person served | — (text label only) |
-| **Adults** (`Fed_Adults`) | Adult served | — (text label only) |
+| **Kids** (`Fed_Kids`) | Kid served | [assets/ui/head_kid.png](assets/ui/head_kid.png) |
+| **Youth** (`Fed_Young`) | Youth served | [assets/ui/head_young.png](assets/ui/head_young.png) |
+| **Adults** (`Fed_Adults`) | Adult served | [assets/ui/head_adult.png](assets/ui/head_adult.png) |
 | **Distance** (`Distance_Walked`) | Horizontal pixels moved while walking | [assets/ui/sandals.png](assets/ui/sandals.png) |
 
 ---

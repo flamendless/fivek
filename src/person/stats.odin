@@ -123,7 +123,7 @@ stat_kind_short :: proc(kind: Stat_Kind) -> cstring {
 	case .Fed_Kids:
 		return "Kids"
 	case .Fed_Young:
-		return "Young"
+		return "Youth"
 	case .Fed_Adults:
 		return "Adults"
 	case .Distance_Walked:
@@ -141,13 +141,27 @@ stat_req_numbers :: proc(available: u32, required: u32) -> cstring {
 }
 
 stat_kind_uses_icon :: proc(kind: Stat_Kind) -> bool {
-	switch kind {
-	case .Fish_Given, .Bread_Given, .Total_Served, .Distance_Walked:
-		return assets.gameplay_ready()
-	case .Fed_Kids, .Fed_Young, .Fed_Adults:
+	if !assets.gameplay_ready() {
 		return false
 	}
+	switch kind {
+	case .Fish_Given, .Bread_Given, .Total_Served, .Distance_Walked,
+	     .Fed_Kids, .Fed_Young, .Fed_Adults:
+		return true
+	}
 	return false
+}
+
+stat_head_texture :: proc(kind: Stat_Kind) -> assets.UI_Texture {
+	#partial switch kind {
+	case .Fed_Kids:
+		return .Head_Kid
+	case .Fed_Young:
+		return .Head_Young
+	case .Fed_Adults:
+		return .Head_Adult
+	}
+	return .People
 }
 
 stat_symbol_width :: proc(kind: Stat_Kind, font: i32) -> f32 {
@@ -193,7 +207,7 @@ draw_stat_symbol :: proc(
 		case .Distance_Walked:
 			ui.draw_texture_icon(ui.texture(.Sandals), {cx, cy})
 		case .Fed_Kids, .Fed_Young, .Fed_Adults:
-			break
+			ui.draw_texture_icon(ui.texture(stat_head_texture(kind)), {cx, cy})
 		}
 		return
 	}

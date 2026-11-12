@@ -10,7 +10,7 @@ PLAYER_W :: 12
 PLAYER_H :: 24
 
 SPRINT_MULT :: 1.5
-DEBUG_SPRINT_MULT :: 3.0
+DEBUG_SPRINT_MULT :: 30.0
 STAMINA_MAX :: 3.0
 STAMINA_REGEN :: 0.35
 EXHAUST_FLASH_HZ :: 8.0
@@ -19,6 +19,8 @@ Player_Modifiers :: struct {
 	speed_mult: f32,
 	stamina_max: f32,
 	stamina_regen: f32,
+	ignore_stamina: bool,
+	sprint_mult: f32,
 }
 
 Player :: struct {
@@ -77,6 +79,11 @@ update :: proc(
 
 	shift := input.key_down(.LEFT_SHIFT)
 
+	sprint_bonus: f32 = SPRINT_MULT
+	if mods.sprint_mult > 0 {
+		sprint_bonus = mods.sprint_mult
+	}
+
 	speed_mult: f32 = 1.0
 	when config.IS_AUTOTEST || config.IS_DEBUG {
 		p.exhausted = false
@@ -89,21 +96,28 @@ update :: proc(
 			}
 		}
 	} else {
-		p.exhausted = shift && p.stamina <= 0
-		if p.exhausted {
-			move_x = 0
+		if mods.ignore_stamina {
+			p.exhausted = false
+			if shift && move_x != 0 {
+				speed_mult = sprint_bonus
+			}
 		} else {
-			sprinting := shift && move_x != 0 && p.stamina > 0
-			if sprinting {
-				speed_mult = SPRINT_MULT
-				p.stamina -= dt
-				if p.stamina < 0 {
-					p.stamina = 0
-				}
+			p.exhausted = shift && p.stamina <= 0
+			if p.exhausted {
+				move_x = 0
 			} else {
-				p.stamina += mods.stamina_regen * dt
-				if p.stamina > mods.stamina_max {
-					p.stamina = mods.stamina_max
+				sprinting := shift && move_x != 0 && p.stamina > 0
+				if sprinting {
+					speed_mult = sprint_bonus
+					p.stamina -= dt
+					if p.stamina < 0 {
+						p.stamina = 0
+					}
+				} else {
+					p.stamina += mods.stamina_regen * dt
+					if p.stamina > mods.stamina_max {
+						p.stamina = mods.stamina_max
+					}
 				}
 			}
 		}

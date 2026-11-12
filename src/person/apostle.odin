@@ -2,6 +2,7 @@ package person
 
 import "core:math"
 import rl "vendor:raylib"
+import "../achievements"
 import "../config"
 import w "../world"
 
@@ -151,6 +152,12 @@ begin_apostle_follow :: proc(p: ^People, person_i: int, record_career: bool = tr
 	init_apostle_perk_on_follow(p, person_i)
 	if record_career {
 		career_record_apostle_recruit(p.career_stats, int(row.identity.apostle_idx))
+		if p.career_stats != nil && career_apostle_recruits_total(p.career_stats^) == 1 {
+			achievements.try_unlock(p.achievement_state, p.achievement_pending, .MoreHandsFeet)
+		}
+		if p.party.count >= APOSTLE_COUNT {
+			achievements.try_unlock(p.achievement_state, p.achievement_pending, .FishersAssemble)
+		}
 	}
 }
 

@@ -19,10 +19,13 @@ COIN_PATHS: [COIN_ICON_COUNT]cstring = {
 }
 
 UI_TEXTURE_PATHS: [UI_Texture]cstring = {
-	.People    = "assets/ui/people.png",
-	.Sandals   = "assets/ui/sandals.png",
-	.General   = "assets/ui/general.png",
-	.Hourglass = "assets/ui/hourglass.png",
+	.People     = "assets/ui/people.png",
+	.Sandals    = "assets/ui/sandals.png",
+	.General    = "assets/ui/general.png",
+	.Hourglass  = "assets/ui/hourglass.png",
+	.Head_Kid   = "assets/ui/head_kid.png",
+	.Head_Young = "assets/ui/head_young.png",
+	.Head_Adult = "assets/ui/head_adult.png",
 }
 
 PATTERN_PATH_FMT :: "assets/patterns/%s/%s_%02d.png"

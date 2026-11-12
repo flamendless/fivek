@@ -7,6 +7,9 @@ UI_Texture :: enum {
 	Sandals,
 	General,
 	Hourglass,
+	Head_Kid,
+	Head_Young,
+	Head_Adult,
 }
 
 Atlas :: enum {

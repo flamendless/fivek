@@ -21,11 +21,51 @@ TITLE_PATTERN_SPEED_MAX :: 22.0
 
 Title_Menu :: enum {
 	Primary,
+	New_Game,
 	Tutorial,
 	Stats,
+	Achievements,
 	Settings,
 	Credits,
 	Exit,
+}
+
+title_menu_slot_count :: proc(g: ^Game) -> int {
+	if title_has_save(g) {
+		return 8
+	}
+	return 7
+}
+
+title_menu_slot_item :: proc(g: ^Game, slot: int) -> Title_Menu {
+	if title_has_save(g) {
+		items := [8]Title_Menu{
+			.Primary,
+			.New_Game,
+			.Tutorial,
+			.Stats,
+			.Achievements,
+			.Settings,
+			.Credits,
+			.Exit,
+		}
+		return items[slot]
+	}
+	items := [7]Title_Menu{
+		.Primary,
+		.Tutorial,
+		.Stats,
+		.Achievements,
+		.Settings,
+		.Credits,
+		.Exit,
+	}
+	return items[slot]
+}
+
+title_run_new_game :: proc(g: ^Game) {
+	delete_run_save(g.persist.save_path)
+	start_run(g, false)
 }
 
 Game_Title :: struct {
@@ -69,7 +109,7 @@ refresh_title_pattern :: proc(g: ^Game) {
 }
 
 pattern_screen_mode :: proc(mode: Game_Mode) -> bool {
-	return mode == .Title || mode == .Stats || mode == .Tutorial || mode == .Credits
+	return mode == .Title || mode == .Stats || mode == .Achievements || mode == .Tutorial || mode == .Credits
 }
 
 unload_title_assets :: proc(g: ^Game) {

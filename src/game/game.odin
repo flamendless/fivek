@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:log"
 import "core:math"
 import rl "vendor:raylib"
+import "../achievements"
 import "../assets"
 import "../config"
 import "../currency"
@@ -17,11 +18,37 @@ Game_Mode :: enum {
 	Disclaimer,
 	Title,
 	Stats,
+	Achievements,
 	Tutorial,
 	Playing,
-	Victory_March,
-	Victory_Lineup,
+	Post_Game,
 	Credits,
+}
+
+Epilogue_Sub :: enum u8 {
+	Roam         = 0,
+	Finale_Pan   = 1,
+	Finale_Text  = 2,
+	Finale_Walk  = 3,
+	Finale_Wait  = 4,
+}
+
+Game_Epilogue :: struct {
+	sub:               Epilogue_Sub,
+	crowd_face_player: bool,
+	apostles:          [person.APOSTLE_COUNT]person.Crowd_Apostle_Play,
+	apostle_rows:      [person.APOSTLE_COUNT]int,
+	celebrated:        []u8,
+	celebrate_delays:  []f32,
+	roam_max_x:        f32,
+	finale_scrim:      f32,
+	finale_text_alpha: f32,
+	finale_text_t:       f32,
+	finale_pan_t:        f32,
+	finale_wait_t:       f32,
+	finale_camera_x:     f32,
+	finale_camera_locked: bool,
+	player_locked:       bool,
 }
 
 Game_View :: struct {
@@ -109,8 +136,12 @@ Game :: struct {
 	title:      Game_Title,
 	autotest:   Game_Autotest,
 	persist:    Game_Persist,
-	career:          person.Career_Stats,
-	career_committed: bool,
+	career:               person.Career_Stats,
+	career_committed:     bool,
+	ach_state:            achievements.State,
+	achievement_pending:  [dynamic]achievements.Id,
+	achievement_toasts:   Achievement_Toast_Stack,
+	epilogue:             Game_Epilogue,
 }
 
 init :: proc(defs := Game_Defs{}) -> ^Game {
@@ -146,6 +177,8 @@ init :: proc(defs := Game_Defs{}) -> ^Game {
 	g.cameras.ui_camera = init_ui_camera(g.view.scale)
 	g.persist.save_path = SAVE_FILENAME
 	g.career = load_career_stats()
+	g.ach_state = load_achievements()
+	game_sync_achievements(g)
 
 	return g
 }
@@ -193,14 +226,14 @@ update :: proc(g: ^Game) {
 		update_title(g)
 	case .Stats:
 		update_stats(g)
+	case .Achievements:
+		update_achievements(g)
 	case .Tutorial:
 		update_tutorial(g)
 	case .Playing:
 		update_playing(g)
-	case .Victory_March:
-		update_victory_march(g)
-	case .Victory_Lineup:
-		update_victory_lineup(g)
+	case .Post_Game:
+		update_post_game(g)
 	case .Credits:
 		update_credits(g)
 	}
@@ -209,6 +242,12 @@ update :: proc(g: ^Game) {
 		refresh_title_pattern(g)
 	}
 	pattern_screen_last_mode = g.mode
+
+	dt := rl.GetFrameTime()
+	if len(g.achievement_pending) > 0 {
+		save_achievements(&g.ach_state)
+	}
+	update_achievement_toasts(g, dt)
 }
 
 @(private = "file")
@@ -227,24 +266,25 @@ draw :: proc(g: ^Game) {
 		draw_title(g)
 	case .Stats:
 		draw_stats(g)
+	case .Achievements:
+		draw_achievements(g)
 	case .Tutorial:
 		draw_tutorial(g)
 	case .Playing:
 		draw_playing(g)
-	case .Victory_March:
-		draw_playing(g)
-	case .Victory_Lineup:
-		draw_playing(g)
-		draw_victory_lineup_hint(g)
+	case .Post_Game:
+		draw_post_game(g)
 	case .Credits:
 		draw_credits(g)
 	}
 
 	rl.BeginMode2D(g.cameras.ui_camera)
 	when config.IS_DEBUG {
+		draw_debug_fps(g)
 		draw_dev_version_badge(g)
 	}
 	draw_bread_pointer(g)
+	draw_achievement_toasts(g)
 	rl.EndMode2D()
 
 	rl.EndDrawing()
@@ -252,9 +292,14 @@ draw :: proc(g: ^Game) {
 
 close :: proc(g: ^Game) {
 	log.info("closing game")
-	if g.mode == .Playing && !g.career_committed {
+	if (g.mode == .Playing || g.mode == .Post_Game) && !g.career_committed {
+		persist_run(g)
 		career_commit_run(g, false)
+	} else if g.mode == .Playing || g.mode == .Post_Game {
+		persist_run(g)
 	}
+	delete(g.epilogue.celebrated)
+	delete(g.epilogue.celebrate_delays)
 	credits_free_crowd(g)
 	tutorial_free_scene(g)
 	w.free_world(g.scene.level)
@@ -268,5 +313,7 @@ close :: proc(g: ^Game) {
 	assets.cache_log_remaining()
 	delete(g.run.served_bits)
 	delete(g.run.apostle_bits)
+	delete(g.achievement_pending)
+	delete(g.achievement_toasts.entries)
 	free(g)
 }

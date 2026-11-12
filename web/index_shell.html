@@ -37,12 +37,27 @@
 		const SAVE_KEY = "fivek:save_fivek.bin";
 		const CAREER_KEY = "fivek:career_stats";
 		const INTRO_PREFS_KEY = "fivek:intro_prefs";
+		const ACHIEVEMENTS_KEY = "fivek:achievements";
 		if (new URLSearchParams(location.search).has("clearSave")) {
 			localStorage.removeItem(SAVE_KEY);
 			localStorage.removeItem(CAREER_KEY);
 			localStorage.removeItem(INTRO_PREFS_KEY);
+			localStorage.removeItem(ACHIEVEMENTS_KEY);
 			history.replaceState(null, "", location.pathname);
 		}
+
+		(function () {
+			var ua = navigator.userAgent || "";
+			var coarse =
+				(navigator.maxTouchPoints > 0 && window.matchMedia("(pointer: coarse)").matches) ||
+				/Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+			if (coarse) {
+				alert(
+					"Bread, Fish, Repeat 5000x needs a keyboard and mouse. " +
+						"Touch phones and tablets are not supported."
+				);
+			}
+		})();
 
 		var odinMemoryInterface = new odin.WasmMemoryInterface();
 		odinMemoryInterface.setIntSize(4);

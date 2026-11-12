@@ -27,7 +27,33 @@ maybe_persist_on_chunk_change :: proc(g: ^Game) {
 	persist_run(g)
 }
 
+run_phase_for_mode :: proc(g: ^Game) -> Run_Phase {
+	#partial switch g.mode {
+	case .Post_Game:
+		switch g.epilogue.sub {
+		case .Finale_Pan, .Finale_Text, .Finale_Walk, .Finale_Wait:
+			return .Post_Game_Finale
+		case .Roam:
+			return .Post_Game_Roam
+		}
+	case .Playing:
+		return .Playing
+	}
+	return .Playing
+}
+
 persist_run :: proc(g: ^Game) {
+	phase := run_phase_for_mode(g)
+	face := false
+	sub: u8 = 0
+	px: f32 = 0
+	if g.scene.player != nil {
+		px = g.scene.player.pos.x
+	}
+	if g.mode == .Post_Game {
+		face = g.epilogue.crowd_face_player
+		sub = u8(g.epilogue.sub)
+	}
 	save_game(
 		g.persist.save_path,
 		g.seed.value,
@@ -37,6 +63,11 @@ persist_run :: proc(g: ^Game) {
 		g.run.run_stats,
 		g.run.stats_pledged,
 		g.run.coins,
+		g.run.play_time,
+		phase,
+		face,
+		sub,
+		px,
 	)
 	save_career_stats(&g.career)
 }

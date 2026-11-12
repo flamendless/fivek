@@ -2,6 +2,7 @@ package person
 
 import "core:math"
 import "core:math/rand"
+import "../achievements"
 import "../assets"
 import "../config"
 
@@ -22,7 +23,12 @@ begin_post_serve :: proc(p: ^People, person_i: int, stats: ^Run_Stats, after_cel
 	}
 
 	to_lineup := pick_lineup_after_serve(p.rows[person_i].traits.age)
-	if after_celebration {
+	if after_celebration && p.career_stats != nil {
+		if to_lineup && p.career_stats.post_celebrate_lineup == 0 {
+			achievements.try_unlock(p.achievement_state, p.achievement_pending, .SmallActBigChange)
+		} else if !to_lineup && p.career_stats.post_celebrate_home == 0 {
+			achievements.try_unlock(p.achievement_state, p.achievement_pending, .NotTheRejectedOne)
+		}
 		career_record_post_celebrate_route(p.career_stats, to_lineup)
 	}
 	if to_lineup {
@@ -46,6 +52,7 @@ try_begin_celebrate :: proc(p: ^People, i: int) -> bool {
 	p.rows[i].behavior.subbehavior = .None
 	p.rows[i].behavior.flee_remaining = 0
 	begin_celebrating(p, i)
+	achievements.try_unlock(p.achievement_state, p.achievement_pending, .CharityNeverFaileth)
 	return true
 }
 
@@ -69,6 +76,37 @@ move_toward_target :: proc(p: ^People, i: int, dt: f32) -> bool {
 }
 
 when config.IS_DEBUG {
+	debug_mark_all_served :: proc(p: ^People) {
+		for i in 0 ..< p.crowd_count {
+			p.rows[i].food.has_fish = true
+			p.rows[i].food.has_bread = true
+			p.rows[i].food.served = true
+			p.rows[i].motion.phase = .Gone
+		}
+	}
+
+	// lineup_count 0 = every crowd member served; otherwise first N only.
+	debug_mark_lineup_count :: proc(p: ^People, lineup_count: int) {
+		if lineup_count <= 0 {
+			debug_mark_all_served(p)
+			return
+		}
+		n := min(lineup_count, p.crowd_count)
+		for i in 0 ..< p.crowd_count {
+			if i < n {
+				p.rows[i].food.has_fish = true
+				p.rows[i].food.has_bread = true
+				p.rows[i].food.served = true
+				p.rows[i].motion.phase = .Gone
+			} else {
+				p.rows[i].food.has_fish = false
+				p.rows[i].food.has_bread = false
+				p.rows[i].food.served = false
+				p.rows[i].motion.phase = .Gone
+			}
+		}
+	}
+
 	debug_serve_next :: proc(p: ^People) -> bool {
 		for i in 0 ..< p.crowd_count {
 			if p.rows[i].food.served {

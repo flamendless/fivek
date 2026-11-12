@@ -18,6 +18,7 @@ CELEBRATE_HOP_DURATION :: 0.12
 SAVE_FILENAME :: "save_fivek.bin"
 INTRO_PREFS_FILENAME :: "intro_seen.bin"
 CAREER_STATS_FILENAME :: "career_stats.bin"
+ACHIEVEMENTS_FILENAME :: "achievements.bin"
 GAME_DISPLAY_TITLE :: "Bread, Fish, Repeat 5000x"
 
 Game_Defs :: struct {

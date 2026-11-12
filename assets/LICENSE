@@ -1,0 +1,59 @@
+Bread, Fish, Repeat 5000x — asset license index
+==============================================
+
+Game source (Odin + raylib) is authored for this project.
+assets/flamendless_logo.png — author-owned.
+
+Third-party art/audio packs (use in-game only; do not redistribute
+standalone files unless the pack license allows it):
+
+Font — Sholom
+  Path: assets/fonts/sholom/
+  Source: https://www.fontspace.com/sholom-font-f39980
+  Follow the font author’s terms on FontSpace.
+
+16×16 character template (8-direction)
+  Path: assets/characters/
+  Source: https://5yvalia.itch.io/16x16-character-template-8-direction
+
+Nature landscape pixel art
+  Path: assets/bg/
+  See also: assets/bg/License.txt (Craftpix license link)
+  Source: https://free-game-assets.itch.io/nature-landscapes-free-pixel-art
+
+Fish icons atlas
+  Path: assets/fishes/
+  Source: https://pixel-late.itch.io/16x16-freshwater-and-saltwater-fish-icons
+
+Bread sprites
+  Path: assets/breads/
+  See also: assets/breads/LICENSE.txt (commercial use allowed; no resale)
+  Source: https://yuu63.itch.io/free-bread-32x32-pixel-art-bread-assets
+
+Coins / gems
+  Path: assets/coins/
+  Source: https://laredgames.itch.io/gems-coins-free
+
+Leather sandals UI
+  Path: assets/ui/sandals.png (and related UI)
+  Source: https://freegamesprites.com/en/assets/sandals-leather
+
+General UI atlas
+  Path: assets/ui/general.png, hourglass, people, etc.
+  Source: https://gowldev.itch.io/ui-buttons-scrolling-bars-pixel-art
+
+Time and money icons
+  Path: assets/ui/ (hourglass and related)
+  Source: https://samucar-ale.itch.io/time-and-money-by-heart
+
+Social media buttons
+  Path: assets/social/
+  See also: assets/social/EULA - READ ME.txt
+  EULA: https://docs.google.com/document/d/1RvcwRvbgEe8ttTMSG5PmqQedFmvc13_n6hdocV4ksU4/edit?usp=sharing
+  Source: https://cazwolf.itch.io/caz-social-media
+
+Seamless rough textures (pattern backgrounds)
+  Path: assets/patterns/
+  Source: https://dijonpickle.itch.io/seamless-rough-textures
+
+When in doubt, check the pack page or the LICENSE files in each asset folder.

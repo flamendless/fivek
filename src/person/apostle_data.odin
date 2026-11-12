@@ -28,23 +28,24 @@ REJECT_SPEECH_LINES: [REJECT_SPEECH_COUNT]cstring = {
 }
 
 Apostle_Def :: struct {
-	name: cstring,
-	color: rl.Color,
+	name:          cstring,
+	color:         rl.Color,
+	epilogue_line: cstring,
 }
 
 APOSTLE_DEFS: [APOSTLE_COUNT]Apostle_Def = {
-	{"Peter", {220, 60, 60, 255}},
-	{"Andrew", {230, 120, 50, 255}},
-	{"James", {230, 190, 40, 255}},
-	{"John", {180, 210, 50, 255}},
-	{"Philip", {80, 180, 70, 255}},
-	{"Bartholomew", {50, 170, 150, 255}},
-	{"Thomas", {60, 190, 220, 255}},
-	{"Matthew", {70, 110, 220, 255}},
-	{"Jude", {90, 80, 200, 255}},
-	{"Thaddaeus", {150, 80, 200, 255}},
-	{"Simon", {200, 70, 180, 255}},
-	{"Judas", {140, 30, 40, 255}},
+	{"Peter", {220, 60, 60, 255}, "A faithful one indeed, like me."},
+	{"Andrew", {230, 120, 50, 255}, "You gathered them well."},
+	{"James", {230, 190, 40, 255}, "The fire in you burns bright."},
+	{"John", {180, 210, 50, 255}, "Beloved, you kept the flock."},
+	{"Philip", {80, 180, 70, 255}, "You saw the need and met it."},
+	{"Bartholomew", {50, 170, 150, 255}, "Steady hands, faithful heart."},
+	{"Thomas", {60, 190, 220, 255}, "I have seen — and it is good."},
+	{"Matthew", {70, 110, 220, 255}, "Your path was true."},
+	{"Jude", {90, 80, 200, 255}, "Hope carried the many home."},
+	{"Thaddaeus", {150, 80, 200, 255}, "Patience crowned this day."},
+	{"Simon", {200, 70, 180, 255}, "Zeal without pride. Well done."},
+	{"Judas", {140, 30, 40, 255}, "...A heavy purse, but a fuller crowd."},
 }
 
 Req_Tier :: enum {
@@ -198,6 +199,13 @@ apostle_reject_speech_text :: proc(p: ^People, apostle_idx: int) -> cstring {
 	idx := p.apostle_reject_speech[apostle_idx]
 	if idx < REJECT_SPEECH_COUNT {
 		return REJECT_SPEECH_LINES[idx]
+	}
+	return ""
+}
+
+epilogue_apostle_speech_text :: proc(apostle_idx: int) -> cstring {
+	if apostle_idx >= 0 && apostle_idx < APOSTLE_COUNT {
+		return APOSTLE_DEFS[apostle_idx].epilogue_line
 	}
 	return ""
 }

@@ -9,7 +9,18 @@ The following are used:
 
 ---
 
+## Disclaimer
+
+Inspired by a biblical story, faithfully adapted with care.
+Gameplay may add imagined scenes and details to bring
+the account to life. The core story remains honored.
+We mean no offense or misinformation toward Scripture.
+
+---
+
 # Assets
+
+See [assets/LICENSE](assets/LICENSE) for third-party terms. Pack sources:
 
 - [Font](https://www.fontspace.com/sholom-font-f39980)
 - [(8-Direction) 16x16 Character Template](https://5yvalia.itch.io/16x16-character-template-8-direction)

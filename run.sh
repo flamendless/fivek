@@ -22,7 +22,7 @@ usage() {
 Usage: ./run.sh <command> [args...]
 
 Commands:
-	run          Build and run the game (STATE=splash|disclaimer|title|credits|stats|play to skip intro flow)
+	run          Build and run the game (DEBUG: STATE=...|postgame|end|end:N — end=post-game roam, end:N = N NPCs in lineup)
 	autotest     Build and run headless autoplay test
 	build        Build native game binary only
 	check        Type-check game and autotest entrypoints
@@ -37,7 +37,7 @@ EOF
 
 clear_save() {
 	local removed=0
-	for f in save_fivek.bin save_autotest.bin career_stats.bin; do
+	for f in save_fivek.bin save_autotest.bin career_stats.bin achievements.bin; do
 		if [[ -f "${ROOT}/${f}" ]]; then
 			rm -f "${ROOT}/${f}"
 			echo "removed ${f}"
@@ -45,7 +45,7 @@ clear_save() {
 		fi
 	done
 	[[ "${removed}" -eq 1 ]] || echo "no native save files found"
-	echo "wasm: open your dev server with ?clearSave=1 (clears localStorage ${WEB_SAVE_KEY}, fivek:career_stats, fivek:intro_prefs)"
+	echo "wasm: open your dev server with ?clearSave=1 (clears localStorage ${WEB_SAVE_KEY}, fivek:career_stats, fivek:achievements, fivek:intro_prefs)"
 }
 
 build_game() {

@@ -4,8 +4,14 @@ import "core:log"
 import "core:mem"
 import "../person"
 
-SAVE_VERSION :: 1
+SAVE_VERSION :: 2
 WEB_SAVE_STORAGE_KEY :: "fivek:save_fivek.bin"
+
+Run_Phase :: enum u8 {
+	Playing           = 0,
+	Post_Game_Roam    = 1,
+	Post_Game_Finale  = 2,
+}
 
 Save_Header :: struct {
 	version: u32,
@@ -21,6 +27,11 @@ encode_save :: proc(
 	run_stats: person.Run_Stats,
 	stats_pledged: person.Run_Stats,
 	coins: u32,
+	play_time: f32,
+	run_phase: Run_Phase,
+	epilogue_face: bool,
+	epilogue_sub: u8,
+	epilogue_player_x: f32,
 	allocator := context.allocator,
 ) -> ([]u8, bool) {
 	buf: [dynamic]u8
@@ -41,6 +52,13 @@ encode_save :: proc(
 	append(&buf, ..sp_bytes)
 	c := coins
 	append(&buf, ..(([^]u8)(&c)[:size_of(u32)]))
+	pt := play_time
+	append(&buf, ..(([^]u8)(&pt)[:size_of(f32)]))
+	append(&buf, u8(run_phase))
+	append(&buf, epilogue_face ? 1 : 0)
+	append(&buf, epilogue_sub)
+	px := epilogue_player_x
+	append(&buf, ..(([^]u8)(&px)[:size_of(f32)]))
 
 	out := buf[:]
 	if out == nil {
@@ -59,6 +77,11 @@ decode_save :: proc(
 	run_stats: ^person.Run_Stats,
 	stats_pledged: ^person.Run_Stats,
 	coins: ^u32,
+	play_time: ^f32,
+	run_phase: ^Run_Phase,
+	epilogue_face: ^bool,
+	epilogue_sub: ^u8,
+	epilogue_player_x: ^f32,
 ) -> bool {
 	need := size_of(Save_Header) + len(bits)
 	if len(data) < need {
@@ -79,7 +102,7 @@ decode_save :: proc(
 		)
 		return false
 	}
-	if header.version != SAVE_VERSION {
+	if header.version != 1 && header.version != SAVE_VERSION {
 		log.warnf("save %s unsupported version %d", label, header.version)
 		return false
 	}
@@ -110,6 +133,43 @@ decode_save :: proc(
 	}
 	if coins != nil && len(data) >= off + size_of(u32) {
 		mem.copy(coins, &data[off], size_of(u32))
+		off += size_of(u32)
+	}
+	if play_time != nil {
+		play_time^ = 0
+	}
+	if run_phase != nil {
+		run_phase^ = .Playing
+	}
+	if epilogue_face != nil {
+		epilogue_face^ = false
+	}
+	if epilogue_sub != nil {
+		epilogue_sub^ = 0
+	}
+	if epilogue_player_x != nil {
+		epilogue_player_x^ = 0
+	}
+	if header.version >= SAVE_VERSION {
+		if play_time != nil && len(data) >= off + size_of(f32) {
+			mem.copy(play_time, &data[off], size_of(f32))
+			off += size_of(f32)
+		}
+		if run_phase != nil && len(data) >= off + 1 {
+			run_phase^ = Run_Phase(data[off])
+			off += 1
+		}
+		if epilogue_face != nil && len(data) >= off + 1 {
+			epilogue_face^ = data[off] != 0
+			off += 1
+		}
+		if epilogue_sub != nil && len(data) >= off + 1 {
+			epilogue_sub^ = data[off]
+			off += 1
+		}
+		if epilogue_player_x != nil && len(data) >= off + size_of(f32) {
+			mem.copy(epilogue_player_x, &data[off], size_of(f32))
+		}
 	}
 	return true
 }

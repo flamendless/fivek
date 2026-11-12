@@ -116,6 +116,21 @@ apostle_hit_index_at :: proc(p: ^People, at: rl.Vector2) -> int {
 	return -1
 }
 
+draw_apostle_epilogue_speech_at :: proc(p: ^People, person_i: int, line: cstring) {
+	if person_i < 0 || person_i >= len(p.rows) {
+		return
+	}
+	row := p.rows[person_i]
+	if row.identity.role != .Apostle || line == "" {
+		return
+	}
+	cx := row.transform.pos_x + row.transform.size_w * 0.5
+	anchor_y := row.transform.pos_y - 4
+	apostle_idx := int(row.identity.apostle_idx)
+	def := APOSTLE_DEFS[apostle_idx]
+	draw_speech_bubble_named_wrap(cx, anchor_y, def.name, def.color, line)
+}
+
 draw_apostle_credits_speech_at :: proc(p: ^People, person_i: int, show_requirements: bool) {
 	if person_i < p.crowd_count || person_i >= len(p.rows) {
 		return

@@ -4,7 +4,7 @@ IS_DEBUG :: #config(DEBUG, false)
 IS_AUTOTEST :: #config(AUTOTEST, false)
 START_STATE :: #config(START_STATE, "")
 IS_GAME_SIZE_SAME :: #config(GAME_SIZE_SAME, true)
-VERSION :: #config(VERSION, "2026.10.15")
+VERSION :: #config(VERSION, "2026.11.12")
 
 GAME_VIEW_WIDTH :: #config(GAME_VIEW_WIDTH, 960)
 GAME_VIEW_HEIGHT :: #config(GAME_VIEW_HEIGHT, 540)

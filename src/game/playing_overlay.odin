@@ -60,6 +60,13 @@ draw_pause_overlay :: proc(g: ^Game) {
 	when config.IS_DEBUG {
 		draw_pause_debug_player_stats(g)
 	}
+	draw_nav_button(g, "Title")
+	hint: cstring = "Saved — P to resume"
+	font := ui_font(g, 10)
+	hw := rl.MeasureText(hint, font)
+	hx := (i32(g.view.game_size.x) - hw) / 2
+	hy := i32(g.view.game_size.y) - font - ui_px(g, 28)
+	rl.DrawText(hint, hx, hy, font, rl.GRAY)
 	rl.EndMode2D()
 }
 

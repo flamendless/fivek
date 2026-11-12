@@ -8,6 +8,9 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 	case .Gone:
 		return
 	case .In_Lineup:
+		if p.epilogue_active && p.rows[i].motion.state == .Celebrating {
+			break
+		}
 		return
 	case .Run_Lineup:
 		if move_toward_target(p, i, dt) {
@@ -40,6 +43,11 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 			if p.rows[i].motion.hop_step >= p.rows[i].motion.hop_count {
 				if p.rows[i].identity.role == .Apostle {
 					finish_apostle_celebrate(p, i)
+				} else if p.epilogue_active && p.rows[i].identity.role == .Crowd {
+					p.rows[i].transform.pos_y = p.rows[i].transform.base_y
+					p.rows[i].motion.hop_step = 0
+					p.rows[i].motion.state = .Idle
+					p.rows[i].motion.phase = .In_Lineup
 				} else {
 					p.rows[i].transform.pos_y = p.rows[i].transform.base_y
 					p.rows[i].motion.hop_step = 0
@@ -56,6 +64,9 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 
 	case .Idle:
 		p.rows[i].motion.idle_anim_t += dt
+		if p.epilogue_active && p.rows[i].identity.role == .Crowd {
+			return
+		}
 		if p.rows[i].identity.role == .Crowd &&
 		   p.rows[i].food.has_fish &&
 		   p.rows[i].food.has_bread &&

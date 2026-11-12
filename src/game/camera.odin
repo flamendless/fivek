@@ -45,6 +45,57 @@ active_game_player :: proc(g: ^Game) -> ^player.Player {
 	return g.scene.player
 }
 
+post_game_first_chunk_camera_x :: proc(g: ^Game, preferred_x: f32) -> f32 {
+	if g.scene.level == nil || len(g.scene.level.chunks) == 0 {
+		return preferred_x
+	}
+	chunk := g.scene.level.chunks[0]
+	half_w := camera_world_half_w(g)
+	min_x := chunk.x_min + half_w
+	max_x := chunk.x_max - half_w
+	if max_x < min_x {
+		return (chunk.x_min + chunk.x_max) * 0.5
+	}
+	return math.clamp(preferred_x, min_x, max_x)
+}
+
+post_game_lock_finale_camera_x :: proc(g: ^Game) {
+	g.epilogue.finale_camera_x = post_game_first_chunk_camera_x(g, g.cameras.camera.target.x)
+	g.epilogue.finale_camera_locked = true
+	g.cameras.camera.target.x = g.epilogue.finale_camera_x
+}
+
+post_game_apply_finale_camera :: proc(g: ^Game, sky_pan_t: f32) {
+	pl := g.scene.player
+	if pl == nil {
+		return
+	}
+	if g.epilogue.finale_camera_locked {
+		g.cameras.camera.target.x = g.epilogue.finale_camera_x
+	} else {
+		post_game_lock_finale_camera_x(g)
+	}
+
+	player_cy := pl.pos.y + pl.size.y * 0.5
+	fy := camera_target_y_for_focus(
+		player_cy,
+		g.cameras.camera.offset.y,
+		g.cameras.camera.zoom,
+	)
+	if sky_pan_t > 0 {
+		sky_y := g.view.game_size.y * -0.35
+		g.cameras.camera.target.y = fy + (sky_y - fy) * sky_pan_t
+	} else {
+		g.cameras.camera.target.y = fy
+	}
+
+	z := g.cameras.camera.zoom
+	if z > 0 {
+		g.cameras.camera.target.x = math.round(g.cameras.camera.target.x * z) / z
+		g.cameras.camera.target.y = math.round(g.cameras.camera.target.y * z) / z
+	}
+}
+
 update_camera :: proc(g: ^Game) {
 	pl := active_game_player(g)
 	if pl == nil {

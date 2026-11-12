@@ -21,6 +21,10 @@ career_commit_run :: proc(g: ^Game, won: bool) {
 	}
 	g.career_committed = true
 	save_career_stats(&g.career)
+	achievement_check_after_career_commit(g, won)
+	if len(g.achievement_pending) > 0 {
+		save_achievements(&g.ach_state)
+	}
 	log.infof("career run committed (won=%v)", won)
 }
 

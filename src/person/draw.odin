@@ -111,7 +111,53 @@ crowd_motion_kind :: proc(state: Person_State) -> wardrobe.Motion_Kind {
 	return .Idle
 }
 
+draw_person_row :: proc(p: ^People, i: int) {
+	row := p.rows[i]
+	pr := person_rect_at(p, i)
+	if row.identity.role == .Crowd && assets.crowd_ready() {
+		motion := crowd_motion_kind(row.motion.state)
+		idle_t := row.motion.idle_anim_t
+		walk_t := row.motion.walk_anim_t
+		if p.epilogue_active && row.motion.phase == .In_Lineup && row.motion.state != .Celebrating {
+			motion = .Walk
+			walk_t = 0
+		}
+		character.draw_crowd(pr, row.traits.appearance, motion, row.transform.dir, idle_t, walk_t)
+		return
+	}
+	col := row.traits.color
+	if row.identity.role == .Apostle && row.traits.draw_alpha < 1 {
+		col.a = u8(f32(col.a) * row.traits.draw_alpha)
+	}
+	rl.DrawRectangleV({row.transform.pos_x, row.transform.pos_y}, {row.transform.size_w, row.transform.size_h}, col)
+}
+
 draw_people :: proc(p: ^People, view: rl.Rectangle) {
+	if p.epilogue_active {
+		visible: [dynamic]int
+		visible.allocator = context.temp_allocator
+		for i in 0 ..< len(p.rows) {
+			if p.rows[i].motion.phase == .Gone {
+				continue
+			}
+			if !rl.CheckCollisionRecs(person_rect_at(p, i), view) {
+				continue
+			}
+			append(&visible, i)
+		}
+		for j in 1 ..< len(visible) {
+			for k := j; k > 0; k -= 1 {
+				if p.rows[visible[k]].transform.pos_x >= p.rows[visible[k - 1]].transform.pos_x {
+					break
+				}
+				visible[k], visible[k - 1] = visible[k - 1], visible[k]
+			}
+		}
+		for i in visible {
+			draw_person_row(p, i)
+		}
+		return
+	}
 	for i in 0 ..< len(p.rows) {
 		if p.rows[i].motion.phase == .Gone {
 			continue
@@ -120,23 +166,7 @@ draw_people :: proc(p: ^People, view: rl.Rectangle) {
 		if !rl.CheckCollisionRecs(pr, view) {
 			continue
 		}
-		row := p.rows[i]
-		if row.identity.role == .Crowd && assets.crowd_ready() {
-			character.draw_crowd(
-				pr,
-				row.traits.appearance,
-				crowd_motion_kind(row.motion.state),
-				row.transform.dir,
-				row.motion.idle_anim_t,
-				row.motion.walk_anim_t,
-			)
-			continue
-		}
-		col := row.traits.color
-		if row.identity.role == .Apostle && row.traits.draw_alpha < 1 {
-			col.a = u8(f32(col.a) * row.traits.draw_alpha)
-		}
-		rl.DrawRectangleV({row.transform.pos_x, row.transform.pos_y}, {row.transform.size_w, row.transform.size_h}, col)
+		draw_person_row(p, i)
 	}
 }
 

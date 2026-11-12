@@ -108,10 +108,6 @@ when config.IS_DEBUG {
 		x := i32(g.view.game_size.x) - panel_text_w - pad
 		y: i32 = pad
 		panel_h := font * 5 + line_gap * 4 + 2
-		fps_font := ui_font(g, 20)
-		fps_label := fmt.ctprintf("FPS %d", rl.GetFPS())
-		fps_x := pad
-		fps_y := i32(g.view.game_size.y) - fps_font - pad
 		rl.BeginMode2D(g.cameras.ui_camera)
 			rl.DrawRectangle(x - ui_px(g, 2), y - 1, panel_text_w + ui_px(g, 4), panel_h, theme.OVERLAY_SCRIM_160)
 			rl.DrawText(speed_label, x, y, font, rl.YELLOW)
@@ -119,7 +115,6 @@ when config.IS_DEBUG {
 			rl.DrawText(dbg_recruit, x, y + (font + line_gap) * 2, font, theme.DEBUG_CYAN)
 			rl.DrawText(dbg_inspector, x, y + (font + line_gap) * 3, font, theme.DEBUG_GREEN)
 			rl.DrawText(dbg_slot, x, y + (font + line_gap) * 4, font, theme.DEBUG_GREEN)
-			rl.DrawText(fps_label, fps_x, fps_y, fps_font, rl.RED)
 			inspector_top := y + panel_h + line_gap
 			person.draw_apostle_debug_inspector(
 				g.scene.people,
@@ -130,6 +125,15 @@ when config.IS_DEBUG {
 				inspector_top,
 			)
 		rl.EndMode2D()
+	}
+
+	DEBUG_FPS_FONT_DESIGN :: 20
+
+	draw_debug_fps :: proc(g: ^Game) {
+		font := ui_font(g, DEBUG_FPS_FONT_DESIGN)
+		pad := ui_px(g, 8)
+		label := fmt.ctprintf("FPS %d", rl.GetFPS())
+		rl.DrawText(label, pad, i32(g.view.game_size.y) - font - pad, font, rl.RED)
 	}
 
 	draw_dev_version_badge :: proc(g: ^Game) {

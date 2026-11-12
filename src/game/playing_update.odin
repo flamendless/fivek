@@ -1,6 +1,7 @@
 package game
 
 import rl "vendor:raylib"
+import "../achievements"
 import "../config"
 import "../currency"
 import "../input"
@@ -11,10 +12,19 @@ update_playing :: proc(g: ^Game) {
 	if input.key_pressed(.P) {
 		g.run.paused = !g.run.paused
 	}
-	person.tick_apostle_reject_speech(g.scene.people, g.scene.player.pos, g.scene.player.size)
+
 	if g.run.paused {
+		mouse := ui_mouse_game_pos(g)
+		clicked := rl.IsMouseButtonPressed(.LEFT)
+		update_nav_button_hover(g, "Title", mouse)
+		if nav_back_pressed() || nav_button_clicked(g, "Title", mouse, clicked) {
+			end_run_to_title(g)
+			return
+		}
 		return
 	}
+
+	person.tick_apostle_reject_speech(g.scene.people, g.scene.player.pos, g.scene.player.size)
 
 	dt := rl.GetFrameTime()
 	when config.IS_AUTOTEST {
@@ -98,7 +108,9 @@ update_playing :: proc(g: ^Game) {
 	g.input.bread_was_down = bread_down
 	if e_down && !g.input.e_was_down {
 		player_rect := rl.Rectangle{g.scene.player.pos.x, g.scene.player.pos.y, g.scene.player.size.x, g.scene.player.size.y}
-		currency.try_pickup(&g.run.dropped_coins, player_rect, &g.run.coins)
+		if currency.try_pickup(&g.run.dropped_coins, player_rect, &g.run.coins) {
+			achievements.try_unlock(&g.ach_state, &g.achievement_pending, .MothDothCorrupt)
+		}
 		available := person.run_stats_available(g.run.run_stats, g.run.stats_pledged)
 		person.try_interact_apostle(
 			g.scene.people,
@@ -133,6 +145,6 @@ update_playing :: proc(g: ^Game) {
 	after := person.count_served(g.scene.people)
 	maybe_persist_on_chunk_change(g)
 	if after >= g.run.person_count && g.run.person_count > 0 && person.sim_settled(g.scene.people) {
-		begin_victory_march(g)
+		begin_post_game(g)
 	}
 }
