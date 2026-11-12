@@ -5,7 +5,7 @@ import "core:math/rand"
 import "../assets"
 import "../config"
 
-begin_post_serve :: proc(p: ^People, person_i: int, stats: ^Run_Stats) {
+begin_post_serve :: proc(p: ^People, person_i: int, stats: ^Run_Stats, after_celebration: bool = false) {
 	p.rows[person_i].food.served = true
 	p.rows[person_i].motion.state = .Running
 
@@ -21,7 +21,11 @@ begin_post_serve :: proc(p: ^People, person_i: int, stats: ^Run_Stats) {
 		}
 	}
 
-	if pick_lineup_after_serve(p.rows[person_i].traits.age) {
+	to_lineup := pick_lineup_after_serve(p.rows[person_i].traits.age)
+	if after_celebration {
+		career_record_post_celebrate_route(p.career_stats, to_lineup)
+	}
+	if to_lineup {
 		begin_run_lineup(p, person_i)
 	} else {
 		begin_run_home(p, person_i)

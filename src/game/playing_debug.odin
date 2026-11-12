@@ -131,4 +131,16 @@ when config.IS_DEBUG {
 			)
 		rl.EndMode2D()
 	}
+
+	draw_dev_version_badge :: proc(g: ^Game) {
+		label := fmt.ctprintf("DEV %s", g.defs.version)
+		ver_m := title_measure_default(g, label, TITLE_VERSION_FONT_DESIGN)
+		ver_pad := f32(ui_px(g, 8))
+		ver_x := g.view.game_size.x - ver_m.x - ver_pad
+		ver_y := g.view.game_size.y - ver_m.y - ver_pad
+		ver_font := rl.GetFontDefault()
+		ver_size := f32(ui_font(g, TITLE_VERSION_FONT_DESIGN))
+		ver_spacing := title_char_spacing(g, 1)
+		rl.DrawTextEx(ver_font, label, {ver_x, ver_y}, ver_size, ver_spacing, rl.RED)
+	}
 }

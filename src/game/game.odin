@@ -16,6 +16,7 @@ Game_Mode :: enum {
 	Splash,
 	Disclaimer,
 	Title,
+	Stats,
 	Tutorial,
 	Playing,
 	Victory_March,
@@ -107,7 +108,9 @@ Game :: struct {
 	credits:    Game_Credits,
 	title:      Game_Title,
 	autotest:   Game_Autotest,
-	persist:  Game_Persist,
+	persist:    Game_Persist,
+	career:          person.Career_Stats,
+	career_committed: bool,
 }
 
 init :: proc(defs := Game_Defs{}) -> ^Game {
@@ -142,6 +145,7 @@ init :: proc(defs := Game_Defs{}) -> ^Game {
 	g.cameras.camera = init_game_camera(g.view.window_size, g.view.scale * config.GAME_WORLD_ZOOM)
 	g.cameras.ui_camera = init_ui_camera(g.view.scale)
 	g.persist.save_path = SAVE_FILENAME
+	g.career = load_career_stats()
 
 	return g
 }
@@ -187,6 +191,8 @@ update :: proc(g: ^Game) {
 		update_disclaimer(g)
 	case .Title:
 		update_title(g)
+	case .Stats:
+		update_stats(g)
 	case .Tutorial:
 		update_tutorial(g)
 	case .Playing:
@@ -219,6 +225,8 @@ draw :: proc(g: ^Game) {
 		draw_disclaimer(g)
 	case .Title:
 		draw_title(g)
+	case .Stats:
+		draw_stats(g)
 	case .Tutorial:
 		draw_tutorial(g)
 	case .Playing:
@@ -232,11 +240,21 @@ draw :: proc(g: ^Game) {
 		draw_credits(g)
 	}
 
+	rl.BeginMode2D(g.cameras.ui_camera)
+	when config.IS_DEBUG {
+		draw_dev_version_badge(g)
+	}
+	draw_bread_pointer(g)
+	rl.EndMode2D()
+
 	rl.EndDrawing()
 }
 
 close :: proc(g: ^Game) {
 	log.info("closing game")
+	if g.mode == .Playing && !g.career_committed {
+		career_commit_run(g, false)
+	}
 	credits_free_crowd(g)
 	tutorial_free_scene(g)
 	w.free_world(g.scene.level)

@@ -12,3 +12,7 @@ fivek_main_check
 # Web build output (./run.sh wasm); source template is index_shell.html
 web/*
 !web/index_shell.html
+
+# Browser player bundles and miniserve cache
+dist/
+tools/miniserve/

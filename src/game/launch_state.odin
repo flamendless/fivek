@@ -18,6 +18,8 @@ apply_launch_state :: proc(g: ^Game) {
 		enter_disclaimer(g)
 	case "credits":
 		enter_credits(g, false)
+	case "stats":
+		enter_stats(g)
 	case "splash":
 		return
 	case:

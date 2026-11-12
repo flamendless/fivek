@@ -11,6 +11,7 @@ VICTORY_MARCH_DEADBAND :: 3.0
 
 begin_victory_march :: proc(g: ^Game) {
 	persist_run(g)
+	career_commit_run(g, true)
 	g.mode = .Victory_March
 	g.input.interact_index = -1
 

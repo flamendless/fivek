@@ -43,7 +43,7 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 				} else {
 					p.rows[i].transform.pos_y = p.rows[i].transform.base_y
 					p.rows[i].motion.hop_step = 0
-					begin_post_serve(p, i, p.run_stats)
+					begin_post_serve(p, i, p.run_stats, true)
 				}
 			} else {
 				p.rows[i].motion.hop_timer = CELEBRATE_HOP_DURATION

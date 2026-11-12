@@ -32,9 +32,11 @@ init_window :: proc(g: ^Game) {
 	when ODIN_OS != .JS {
 		rl.SetExitKey(.KEY_NULL)
 	}
+	rl.HideCursor()
 }
 
 close_window :: proc() {
 	log.info("closing window")
+	rl.ShowCursor()
 	rl.CloseWindow()
 }

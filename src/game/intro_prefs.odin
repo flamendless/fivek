@@ -5,19 +5,6 @@ import "core:log"
 import "core:mem"
 import "core:os"
 
-INTRO_PREFS_MAGIC :: [5]u8 {0x66, 0x6C, 0x61, 0x6D, 0x38}
-INTRO_PREFS_MIN_LEN :: 6
-
-Intro_Prefs :: struct {
-	magic: [5]u8,
-	seen: u8,
-	tutorial_seen: u8,
-}
-
-intro_prefs_magic_ok :: proc(magic: [5]u8) -> bool {
-	return magic == INTRO_PREFS_MAGIC
-}
-
 read_intro_prefs :: proc() -> (prefs: Intro_Prefs, ok: bool) {
 	data, err := os.read_entire_file_from_path(INTRO_PREFS_FILENAME, context.temp_allocator)
 	if err != nil || len(data) < INTRO_PREFS_MIN_LEN {

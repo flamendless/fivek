@@ -206,8 +206,9 @@ People :: struct {
 	party: People_Party,
 	apostle_requirements: [APOSTLE_COUNT]Apostle_Requirements,
 	apostle_reject_speech: [APOSTLE_COUNT]u8,
-	run_stats: ^Run_Stats,
-	coin_drops: ^[dynamic]currency.Dropped_Coin,
+	run_stats:    ^Run_Stats,
+	career_stats: ^Career_Stats,
+	coin_drops:   ^[dynamic]currency.Dropped_Coin,
 	escort: People_Escort,
 	debug: People_Debug,
 }

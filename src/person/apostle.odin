@@ -138,7 +138,7 @@ spawn_apostles_lineup_center :: proc(p: ^People, seed: u64, screen_w: f32, groun
 	}
 }
 
-begin_apostle_follow :: proc(p: ^People, person_i: int) {
+begin_apostle_follow :: proc(p: ^People, person_i: int, record_career: bool = true) {
 	row := &p.rows[person_i]
 	if row.identity.role != .Apostle || row.motion.phase == .Following {
 		return
@@ -149,12 +149,15 @@ begin_apostle_follow :: proc(p: ^People, person_i: int) {
 	row.motion.state = .Idle
 	row.behavior.subbehavior = .None
 	init_apostle_perk_on_follow(p, person_i)
+	if record_career {
+		career_record_apostle_recruit(p.career_stats, int(row.identity.apostle_idx))
+	}
 }
 
 finish_apostle_celebrate :: proc(p: ^People, i: int) {
 	p.rows[i].transform.pos_y = p.rows[i].transform.base_y
 	p.rows[i].motion.hop_step = 0
-	begin_apostle_follow(p, i)
+	begin_apostle_follow(p, i, true)
 }
 
 is_apostle_interactable :: proc(p: ^People, i: int) -> bool {
@@ -274,7 +277,7 @@ apply_apostle_bits :: proc(p: ^People, bits: []u8) {
 		}
 		for i in p.crowd_count ..< len(p.rows) {
 			if p.rows[i].identity.role == .Apostle && int(p.rows[i].identity.apostle_idx) == a {
-				begin_apostle_follow(p, i)
+				begin_apostle_follow(p, i, false)
 				break
 			}
 		}

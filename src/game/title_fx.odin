@@ -270,7 +270,6 @@ title_fx_on_enter :: proc(g: ^Game) {
 	}
 	log.info("title fx: enter title")
 	title_fx_reset(g)
-	rl.HideCursor()
 	fx.active = true
 }
 
@@ -281,7 +280,6 @@ title_fx_on_leave :: proc(g: ^Game) {
 	}
 	log.info("title fx: leave title")
 	title_fx_destroy_all_fish(g, "leave")
-	rl.ShowCursor()
 	fx.active = false
 }
 
@@ -384,10 +382,13 @@ title_fx_draw_fish :: proc(g: ^Game) {
 	}
 }
 
-title_fx_draw_bread :: proc(g: ^Game) {
+draw_bread_pointer :: proc(g: ^Game) {
 	fx := &g.title.fx
 	if !assets.gameplay_ready() {
 		return
+	}
+	if fx.bread_icon < 0 {
+		title_fx_randomize_bread(g, "init")
 	}
 	mouse := ui_mouse_game_pos(g)
 	size := title_fx_bread_size(g)

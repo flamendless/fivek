@@ -3,7 +3,6 @@ package game
 import "core:fmt"
 import "core:log"
 import "core:math/rand"
-import "core:os"
 import rl "vendor:raylib"
 import "../assets"
 import "../pattern_bg"
@@ -23,6 +22,7 @@ TITLE_PATTERN_SPEED_MAX :: 22.0
 Title_Menu :: enum {
 	Primary,
 	Tutorial,
+	Stats,
 	Settings,
 	Credits,
 	Exit,
@@ -69,7 +69,7 @@ refresh_title_pattern :: proc(g: ^Game) {
 }
 
 pattern_screen_mode :: proc(mode: Game_Mode) -> bool {
-	return mode == .Title || mode == .Tutorial || mode == .Credits
+	return mode == .Title || mode == .Stats || mode == .Tutorial || mode == .Credits
 }
 
 unload_title_assets :: proc(g: ^Game) {
@@ -201,11 +201,7 @@ title_text_bounds :: proc(g: ^Game, text: cstring, y: f32, size, spacing: f32) -
 }
 
 title_has_save :: proc(g: ^Game) -> bool {
-	when ODIN_OS == .JS {
-		return fivek_web_storage_get_len() > 0
-	} else {
-		return os.exists(g.persist.save_path)
-	}
+	return save_exists(g.persist.save_path)
 }
 
 title_primary_label :: proc(g: ^Game) -> cstring {

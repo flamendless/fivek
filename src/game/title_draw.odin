@@ -3,6 +3,7 @@ package game
 import "core:fmt"
 import rl "vendor:raylib"
 import "../assets"
+import "../config"
 import "../pattern_bg"
 import "../social"
 
@@ -44,7 +45,7 @@ draw_title :: proc(g: ^Game) {
 	y += m.y + headline_gap
 
 	_, menu_y := title_menu_layout(g, menu_size, menu_spacing, menu_step)
-	items := [5]Title_Menu{.Primary, .Tutorial, .Settings, .Credits, .Exit}
+	items := [6]Title_Menu{.Primary, .Tutorial, .Stats, .Settings, .Credits, .Exit}
 	for item in items {
 		label := title_menu_label(item, g)
 		color := rl.BLACK
@@ -57,21 +58,21 @@ draw_title :: proc(g: ^Game) {
 
 	social.draw_row(assets.atlas(.Social), g.title.hovered_social, true, g.view.game_size, g.view.ui_scale)
 
-	ver := fmt.ctprintf("build: v%s", g.defs.version)
-	ver_m := title_measure_default(g, ver, TITLE_VERSION_FONT_DESIGN)
-	ver_pad := f32(ui_px(g, 8))
-	ver_x := g.view.game_size.x - ver_m.x - ver_pad
-	ver_y := g.view.game_size.y - ver_m.y - ver_pad
-	ver_font := rl.GetFontDefault()
-	ver_size := f32(ui_font(g, TITLE_VERSION_FONT_DESIGN))
-	ver_spacing := title_char_spacing(g, 1)
-	rl.DrawTextEx(ver_font, ver, {ver_x, ver_y}, ver_size, ver_spacing, rl.RED)
+	when !config.IS_DEBUG {
+		ver := fmt.ctprintf("build: v%s", g.defs.version)
+		ver_m := title_measure_default(g, ver, TITLE_VERSION_FONT_DESIGN)
+		ver_pad := f32(ui_px(g, 8))
+		ver_x := g.view.game_size.x - ver_m.x - ver_pad
+		ver_y := g.view.game_size.y - ver_m.y - ver_pad
+		ver_font := rl.GetFontDefault()
+		ver_size := f32(ui_font(g, TITLE_VERSION_FONT_DESIGN))
+		ver_spacing := title_char_spacing(g, 1)
+		rl.DrawTextEx(ver_font, ver, {ver_x, ver_y}, ver_size, ver_spacing, rl.RED)
+	}
 
 	if g.title.settings_open {
 		draw_title_settings_overlay(g)
 	}
-
-	title_fx_draw_bread(g)
 
 	rl.EndMode2D()
 }

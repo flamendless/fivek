@@ -2,6 +2,7 @@ package game
 
 import "core:log"
 import "../assets"
+import "../config"
 import rl "vendor:raylib"
 
 Web_Runtime :: struct {
@@ -35,6 +36,10 @@ web_start :: proc() {
 
 	log.info("loading gameplay assets")
 	assets.load_gameplay()
+
+	when config.IS_DEBUG {
+		apply_launch_state(web.game)
+	}
 
 	rl.SetTargetFPS(0)
 }

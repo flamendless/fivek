@@ -66,3 +66,7 @@ save_game :: proc(
 	log.infof("saved game %s", path)
 	return true
 }
+
+save_exists :: proc(path: string) -> bool {
+	return os.exists(path)
+}

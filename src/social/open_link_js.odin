@@ -1,8 +1,10 @@
 #+build js
 package social
 
+foreign import "env"
+
 @(default_calling_convention = "c")
-foreign "env" {
+foreign env {
 	fivek_open_url :: proc(url: cstring) ---
 }
 

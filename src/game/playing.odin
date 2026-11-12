@@ -38,6 +38,7 @@ persist_run :: proc(g: ^Game) {
 		g.run.stats_pledged,
 		g.run.coins,
 	)
+	save_career_stats(&g.career)
 }
 
 format_play_time :: proc(seconds: f32) -> cstring {

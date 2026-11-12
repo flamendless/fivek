@@ -8,6 +8,9 @@ import "../player"
 import w "../world"
 
 start_run :: proc(g: ^Game, continue_save: bool) {
+	if g.mode == .Playing && !g.career_committed {
+		career_commit_run(g, false)
+	}
 	if g.scene.level != nil {
 		w.free_world(g.scene.level)
 		g.scene.level = nil
@@ -87,7 +90,14 @@ start_run :: proc(g: ^Game, continue_save: bool) {
 	}
 	if g.scene.people != nil {
 		g.scene.people.run_stats = &g.run.run_stats
+		g.scene.people.career_stats = &g.career
 		g.scene.people.coin_drops = &g.run.dropped_coins
+	}
+
+	if continue_save {
+		g.career_committed = false
+	} else {
+		career_on_run_start(g)
 	}
 
 	g.scene.player = player.init({PLAYER_START_X, 0}, g.defs.player_speed)
@@ -113,7 +123,7 @@ start_run :: proc(g: ^Game, continue_save: bool) {
 when config.IS_DEBUG {
 	debug_reload_current_state :: proc(g: ^Game) {
 		switch g.mode {
-		case .Splash, .Disclaimer, .Title, .Credits:
+		case .Splash, .Disclaimer, .Title, .Stats, .Credits:
 			reload_title_random(g)
 		case .Tutorial:
 			reload_title_random(g)

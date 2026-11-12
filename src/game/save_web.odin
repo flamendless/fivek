@@ -7,12 +7,19 @@ import "core:log"
 import "core:strings"
 import "../person"
 
+foreign import "env"
+
 @(default_calling_convention = "c")
-foreign "env" {
+foreign env {
 	fivek_web_storage_get_len :: proc() -> int ---
 	fivek_web_storage_get :: proc(buf: [^]u8, max_len: int) -> int ---
 	fivek_web_storage_set :: proc(data: cstring) ---
 	fivek_open_url :: proc(url: cstring) ---
+}
+
+save_exists :: proc(path: string) -> bool {
+	_ = path
+	return fivek_web_storage_get_len() > 0
 }
 
 load_save :: proc(

@@ -12,11 +12,18 @@
 			overflow: hidden;
 			background: #111;
 		}
+		body {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+		}
 		canvas {
 			display: block;
-			margin: 0 auto;
 			border: 0;
 			background: #000;
+			flex-shrink: 0;
+			cursor: none;
 		}
 	</style>
 </head>
@@ -28,8 +35,12 @@
 	<script src="odin.js"></script>
 	<script>
 		const SAVE_KEY = "fivek:save_fivek.bin";
+		const CAREER_KEY = "fivek:career_stats";
+		const INTRO_PREFS_KEY = "fivek:intro_prefs";
 		if (new URLSearchParams(location.search).has("clearSave")) {
 			localStorage.removeItem(SAVE_KEY);
+			localStorage.removeItem(CAREER_KEY);
+			localStorage.removeItem(INTRO_PREFS_KEY);
 			history.replaceState(null, "", location.pathname);
 		}
 

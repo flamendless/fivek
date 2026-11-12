@@ -35,7 +35,7 @@ update_title :: proc(g: ^Game) {
 	menu_step := f32(ui_px(g, 28))
 	_, menu_y := title_menu_layout(g, menu_size, menu_spacing, menu_step)
 
-	items := [5]Title_Menu{.Primary, .Tutorial, .Settings, .Credits, .Exit}
+	items := [6]Title_Menu{.Primary, .Tutorial, .Stats, .Settings, .Credits, .Exit}
 	for item in items {
 		label := title_menu_label(item, g)
 		bounds := title_text_bounds(g, label, menu_y, menu_size, menu_spacing)
@@ -60,6 +60,8 @@ title_menu_action :: proc(g: ^Game, item: Title_Menu) {
 		title_run_primary(g)
 	case .Tutorial:
 		enter_tutorial(g, false)
+	case .Stats:
+		enter_stats(g)
 	case .Settings:
 		g.title.settings_open = true
 	case .Credits:
@@ -75,6 +77,8 @@ title_menu_label :: proc(item: Title_Menu, g: ^Game) -> cstring {
 		return title_primary_label(g)
 	case .Tutorial:
 		return "Tutorial"
+	case .Stats:
+		return "Stats"
 	case .Settings:
 		return "Settings"
 	case .Credits:
