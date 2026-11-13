@@ -16,7 +16,8 @@ pick_lineup_after_serve :: proc(age: Person_Age) -> bool {
 }
 
 lineup_slots_per_row :: proc(chunk_width: f32) -> int {
-	inner := chunk_width - LINEUP_PAD * 2
+	inner := lineup_staging_x_max(chunk_width) - LINEUP_PAD
+	inner = max(inner, LINEUP_SLOT_PITCH)
 	return max(int(inner / LINEUP_SLOT_PITCH), 1)
 }
 

@@ -5,6 +5,7 @@ import "core:math"
 import "core:math/rand"
 import rl "vendor:raylib"
 import "../config"
+import ui_assets "../ui"
 import "../theme"
 
 PERSON_MARGIN :: 4
@@ -306,10 +307,19 @@ when config.IS_DEBUG {
 			label := fmt.ctprintf("%s id=%d #%d", name, c.index, c.person_count)
 			tw := f32(rl.MeasureText(label, label_font))
 			cx := c.x_min + chunk_w * 0.5
-			tx := i32(cx - tw * 0.5)
-			ty := i32(ground.top_y + 4)
-			rl.DrawRectangle(tx - 1, ty - 1, i32(tw) + 2, label_font + 2, theme.OVERLAY_SCRIM_150)
-			rl.DrawText(label, tx, ty, label_font, rl.WHITE)
+			gutter := f32(8)
+			label_w := tw + gutter * 2
+			label_h := f32(label_font) + gutter * 2
+			panel := rl.Rectangle{cx - label_w * 0.5, ground.top_y + 4, label_w, label_h}
+			ui_assets.draw_wood_panel(panel)
+			content := ui_assets.wood_panel_content(panel, 0)
+			rl.DrawText(
+				label,
+				i32(content.x + (content.width - tw) * 0.5),
+				i32(content.y + (content.height - f32(label_font)) * 0.5),
+				label_font,
+				theme.TEXT_INK,
+			)
 		}
 	}
 }

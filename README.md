@@ -33,3 +33,5 @@ See [assets/LICENSE](assets/LICENSE) for third-party terms. Pack sources:
 - [Time and money by heart](https://samucar-ale.itch.io/time-and-money-by-heart)
 - [Social Media Buttons](https://cazwolf.itch.io/caz-social-media)
 - [Seamless Rough Textures](https://dijonpickle.itch.io/seamless-rough-textures)
+- [Cozy UI Kit LITE](https://glintapps.itch.io/cozy-ui-kit-lite-free) — wood panels, buttons, bars, and dialog frames (`assets/ui/cozyuikit/`, 2× art only in-game)
+- [Free 16×16 Emote Bubbles](https://northleafstudio.itch.io/free-16x16-emote-bubbles) — speech emotes above NPCs (`assets/ui/emotes/emotes/`)

@@ -9,7 +9,7 @@ import "../person"
 import "../social"
 import "../theme"
 
-CREDIT_ASSET_COUNT :: 11
+CREDIT_ASSET_COUNT :: 13
 
 CREDITS_ATTR_FONT_DESIGN :: 18
 CREDITS_ASSET_BASE_DESIGN :: 28
@@ -38,6 +38,8 @@ CREDIT_ASSETS: []Credit_Asset = {
 	{"Time and Money", "https://samucar-ale.itch.io/time-and-money-by-heart"},
 	{"Social Media Buttons", "https://cazwolf.itch.io/caz-social-media"},
 	{"Rough Textures", "https://dijonpickle.itch.io/seamless-rough-textures"},
+	{"Cozy UI Kit LITE", "https://glintapps.itch.io/cozy-ui-kit-lite-free"},
+	{"Emote Bubbles", "https://northleafstudio.itch.io/free-16x16-emote-bubbles"},
 }
 
 Credit_Asset_Runtime :: struct {
@@ -320,6 +322,15 @@ draw_credits :: proc(g: ^Game) {
 		g.view.ui_scale,
 	)
 
+	assets_label_font := ui_font(g, CREDITS_ASSETS_LABEL_DESIGN)
+	credits_draw_centered(
+		g,
+		"used free assets",
+		credits_assets_label_y(g),
+		assets_label_font,
+		rl.BLACK,
+	)
+
 	if assets.gameplay_ready() {
 		line_w := f32(max(ui_px(g, 1), 1))
 		bread := assets.bread_grid()
@@ -342,15 +353,6 @@ draw_credits :: proc(g: ^Game) {
 			}
 		}
 	}
-
-	assets_label_font := ui_font(g, CREDITS_ASSETS_LABEL_DESIGN)
-	credits_draw_centered(
-		g,
-		"used free assets",
-		credits_assets_label_y(g),
-		assets_label_font,
-		rl.BLACK,
-	)
 
 	draw_nav_button(g, "Back")
 	if g.credits.from_victory {

@@ -1,0 +1,422 @@
+{
+ "version": "1.2",
+ "tile_size": {
+  "1x": 8,
+  "2x": 16,
+  "3x": 24
+ },
+ "sheet": {
+  "1x": "tiles/tilesheet_1x.png",
+  "2x": "tiles/tilesheet_2x.png",
+  "3x": "tiles/tilesheet_3x.png"
+ },
+ "columns": 16,
+ "rows": 1,
+ "axis_note": "tile_axis h = repeat horizontally, v = repeat vertically, both = repeat in both directions, null = place once",
+ "sets": {
+  "panel_wood": [
+   "tile_panel_wood_corner_tl",
+   "tile_panel_wood_edge_top",
+   "tile_panel_wood_corner_tr",
+   "tile_panel_wood_edge_left",
+   "tile_panel_wood_center",
+   "tile_panel_wood_edge_right",
+   "tile_panel_wood_corner_bl",
+   "tile_panel_wood_edge_bottom",
+   "tile_panel_wood_corner_br",
+   "tile_panel_wood_divider_h_left",
+   "tile_panel_wood_divider_h_mid",
+   "tile_panel_wood_divider_h_right",
+   "tile_panel_wood_divider_v_top",
+   "tile_panel_wood_divider_v_mid",
+   "tile_panel_wood_divider_v_bottom",
+   "tile_panel_wood_divider_cross"
+  ]
+ },
+ "tiles": [
+  {
+   "name": "tile_panel_wood_corner_tl",
+   "index": 0,
+   "set": "panel_wood",
+   "role": "corner_tl",
+   "col": 0,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_corner_tl.png",
+    "2x/tiles/panel_wood/tile_panel_wood_corner_tl.png",
+    "3x/tiles/panel_wood/tile_panel_wood_corner_tl.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_edge_top",
+   "index": 1,
+   "set": "panel_wood",
+   "role": "edge_top",
+   "col": 1,
+   "row": 0,
+   "tile_axis": "h",
+   "x": {
+    "1x": 8,
+    "2x": 16,
+    "3x": 24
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_edge_top.png",
+    "2x/tiles/panel_wood/tile_panel_wood_edge_top.png",
+    "3x/tiles/panel_wood/tile_panel_wood_edge_top.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_corner_tr",
+   "index": 2,
+   "set": "panel_wood",
+   "role": "corner_tr",
+   "col": 2,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 16,
+    "2x": 32,
+    "3x": 48
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_corner_tr.png",
+    "2x/tiles/panel_wood/tile_panel_wood_corner_tr.png",
+    "3x/tiles/panel_wood/tile_panel_wood_corner_tr.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_edge_left",
+   "index": 3,
+   "set": "panel_wood",
+   "role": "edge_left",
+   "col": 3,
+   "row": 0,
+   "tile_axis": "v",
+   "x": {
+    "1x": 24,
+    "2x": 48,
+    "3x": 72
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_edge_left.png",
+    "2x/tiles/panel_wood/tile_panel_wood_edge_left.png",
+    "3x/tiles/panel_wood/tile_panel_wood_edge_left.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_center",
+   "index": 4,
+   "set": "panel_wood",
+   "role": "center",
+   "col": 4,
+   "row": 0,
+   "tile_axis": "both",
+   "x": {
+    "1x": 32,
+    "2x": 64,
+    "3x": 96
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_center.png",
+    "2x/tiles/panel_wood/tile_panel_wood_center.png",
+    "3x/tiles/panel_wood/tile_panel_wood_center.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_edge_right",
+   "index": 5,
+   "set": "panel_wood",
+   "role": "edge_right",
+   "col": 5,
+   "row": 0,
+   "tile_axis": "v",
+   "x": {
+    "1x": 40,
+    "2x": 80,
+    "3x": 120
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_edge_right.png",
+    "2x/tiles/panel_wood/tile_panel_wood_edge_right.png",
+    "3x/tiles/panel_wood/tile_panel_wood_edge_right.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_corner_bl",
+   "index": 6,
+   "set": "panel_wood",
+   "role": "corner_bl",
+   "col": 6,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 48,
+    "2x": 96,
+    "3x": 144
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_corner_bl.png",
+    "2x/tiles/panel_wood/tile_panel_wood_corner_bl.png",
+    "3x/tiles/panel_wood/tile_panel_wood_corner_bl.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_edge_bottom",
+   "index": 7,
+   "set": "panel_wood",
+   "role": "edge_bottom",
+   "col": 7,
+   "row": 0,
+   "tile_axis": "h",
+   "x": {
+    "1x": 56,
+    "2x": 112,
+    "3x": 168
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_edge_bottom.png",
+    "2x/tiles/panel_wood/tile_panel_wood_edge_bottom.png",
+    "3x/tiles/panel_wood/tile_panel_wood_edge_bottom.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_corner_br",
+   "index": 8,
+   "set": "panel_wood",
+   "role": "corner_br",
+   "col": 8,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 64,
+    "2x": 128,
+    "3x": 192
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_corner_br.png",
+    "2x/tiles/panel_wood/tile_panel_wood_corner_br.png",
+    "3x/tiles/panel_wood/tile_panel_wood_corner_br.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_divider_h_left",
+   "index": 9,
+   "set": "panel_wood",
+   "role": "divider_h_left",
+   "col": 9,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 72,
+    "2x": 144,
+    "3x": 216
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_divider_h_left.png",
+    "2x/tiles/panel_wood/tile_panel_wood_divider_h_left.png",
+    "3x/tiles/panel_wood/tile_panel_wood_divider_h_left.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_divider_h_mid",
+   "index": 10,
+   "set": "panel_wood",
+   "role": "divider_h_mid",
+   "col": 10,
+   "row": 0,
+   "tile_axis": "h",
+   "x": {
+    "1x": 80,
+    "2x": 160,
+    "3x": 240
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_divider_h_mid.png",
+    "2x/tiles/panel_wood/tile_panel_wood_divider_h_mid.png",
+    "3x/tiles/panel_wood/tile_panel_wood_divider_h_mid.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_divider_h_right",
+   "index": 11,
+   "set": "panel_wood",
+   "role": "divider_h_right",
+   "col": 11,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 88,
+    "2x": 176,
+    "3x": 264
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_divider_h_right.png",
+    "2x/tiles/panel_wood/tile_panel_wood_divider_h_right.png",
+    "3x/tiles/panel_wood/tile_panel_wood_divider_h_right.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_divider_v_top",
+   "index": 12,
+   "set": "panel_wood",
+   "role": "divider_v_top",
+   "col": 12,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 96,
+    "2x": 192,
+    "3x": 288
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_divider_v_top.png",
+    "2x/tiles/panel_wood/tile_panel_wood_divider_v_top.png",
+    "3x/tiles/panel_wood/tile_panel_wood_divider_v_top.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_divider_v_mid",
+   "index": 13,
+   "set": "panel_wood",
+   "role": "divider_v_mid",
+   "col": 13,
+   "row": 0,
+   "tile_axis": "v",
+   "x": {
+    "1x": 104,
+    "2x": 208,
+    "3x": 312
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_divider_v_mid.png",
+    "2x/tiles/panel_wood/tile_panel_wood_divider_v_mid.png",
+    "3x/tiles/panel_wood/tile_panel_wood_divider_v_mid.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_divider_v_bottom",
+   "index": 14,
+   "set": "panel_wood",
+   "role": "divider_v_bottom",
+   "col": 14,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 112,
+    "2x": 224,
+    "3x": 336
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_divider_v_bottom.png",
+    "2x/tiles/panel_wood/tile_panel_wood_divider_v_bottom.png",
+    "3x/tiles/panel_wood/tile_panel_wood_divider_v_bottom.png"
+   ]
+  },
+  {
+   "name": "tile_panel_wood_divider_cross",
+   "index": 15,
+   "set": "panel_wood",
+   "role": "divider_cross",
+   "col": 15,
+   "row": 0,
+   "tile_axis": null,
+   "x": {
+    "1x": 120,
+    "2x": 240,
+    "3x": 360
+   },
+   "y": {
+    "1x": 0,
+    "2x": 0,
+    "3x": 0
+   },
+   "files": [
+    "1x/tiles/panel_wood/tile_panel_wood_divider_cross.png",
+    "2x/tiles/panel_wood/tile_panel_wood_divider_cross.png",
+    "3x/tiles/panel_wood/tile_panel_wood_divider_cross.png"
+   ]
+  }
+ ]
+}

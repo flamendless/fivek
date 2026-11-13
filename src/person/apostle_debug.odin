@@ -4,6 +4,7 @@ import "core:fmt"
 import rl "vendor:raylib"
 import "../config"
 import "../input"
+import ui_assets "../ui"
 import "../theme"
 
 when config.IS_DEBUG {
@@ -80,7 +81,7 @@ draw_apostle_debug_inspector :: proc(
 	if p.party.count == 0 {
 		lines[n] = "Party empty"
 		n += 1
-		lines[n] = "L recruit (bypass)"
+		lines[n] = "K recruit (bypass)"
 		n += 1
 	} else {
 		for slot in 0 ..< p.party.count {
@@ -162,16 +163,23 @@ draw_apostle_debug_inspector :: proc(
 	if panel_w < 80 {
 		panel_w = 80
 	}
-	x := i32(game_w) - panel_w - pad
-	y := top_y
-	panel_h := i32(n) * line_step + 2
-	rl.DrawRectangle(x - 2, y - 1, panel_w + 4, panel_h, theme.OVERLAY_SCRIM_180)
+	content_h := i32(n) * line_step
+	inner_w := f32(panel_w)
+	panel_w = i32(ui_assets.wood_panel_width_for_inner(inner_w, 0))
+	panel_h := i32(ui_assets.wood_panel_height_for_inner(f32(content_h), 0))
+	panel_x := i32(game_w) - panel_w - pad
+	panel_y := top_y
+	panel := rl.Rectangle{f32(panel_x), f32(panel_y), f32(panel_w), f32(panel_h)}
+	ui_assets.draw_wood_panel(panel)
+	content := ui_assets.wood_panel_content(panel, 0)
+	text_x := i32(content.x)
+	text_y := i32(content.y)
 	for j in 0 ..< n {
-		col := rl.LIGHTGRAY
+		col := theme.TEXT_INK
 		if p.party.count > 0 && j == 1 + p.debug.apostle_inspector_slot {
 			col = theme.DEBUG_CYAN_BRIGHT
 		}
-		rl.DrawText(lines[j], x, y + i32(j) * line_step, font, col)
+		rl.DrawText(lines[j], text_x, text_y + i32(j) * line_step, font, col)
 	}
 }
 
@@ -198,12 +206,21 @@ draw_apostle_debug_world_labels :: proc(p: ^People, view: rl.Rectangle, font: i3
 			name = APOSTLE_DEFS[idx].name
 		}
 		label := fmt.ctprintf("%s: %v", name, row.perk.apostle_perk)
-		tw := rl.MeasureText(label, font)
+		tw := f32(rl.MeasureText(label, font))
 		cx := person_cx(p, i)
-		tx := i32(cx - f32(tw) * 0.5)
-		ty := i32(row.transform.pos_y - f32(font) - 6)
-		rl.DrawRectangle(tx - 1, ty - 1, tw + 2, font + 2, theme.OVERLAY_SCRIM_140)
-		rl.DrawText(label, tx, ty, font, rl.YELLOW)
+		label_h := ui_assets.wood_panel_height_for_inner(f32(font), 0)
+		label_w := ui_assets.wood_panel_width_for_inner(tw, 0)
+		ty := row.transform.pos_y - label_h - 6
+		panel := rl.Rectangle{cx - label_w * 0.5, ty, label_w, label_h}
+		ui_assets.draw_wood_panel(panel)
+		content := ui_assets.wood_panel_content(panel, 0)
+		rl.DrawText(
+			label,
+			i32(content.x + (content.width - tw) * 0.5),
+			i32(content.y + (content.height - f32(font)) * 0.5),
+			font,
+			theme.TEXT_INK,
+		)
 	}
 }
 

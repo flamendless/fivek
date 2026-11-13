@@ -5,7 +5,9 @@ import rl "vendor:raylib"
 import "../assets"
 import "../config"
 import "../pattern_bg"
+import ui_assets "../ui"
 import "../social"
+import "../theme"
 
 draw_title_pattern_bg :: proc(g: ^Game) {
 	if g.title.pattern != nil {
@@ -48,11 +50,13 @@ draw_title :: proc(g: ^Game) {
 	for slot in 0 ..< title_menu_slot_count(g) {
 		item := title_menu_slot_item(g, slot)
 		label := title_menu_label(item, g)
-		color := rl.BLACK
+		btn_bounds := title_menu_button_bounds(g, label, menu_y, menu_size, menu_spacing)
+		btn: assets.Cozy_Button = .Normal
 		if g.title.hovered_menu == slot {
-			color = rl.WHITE
+			btn = rl.IsMouseButtonDown(.LEFT) ? .Pressed : .Hover
 		}
-		title_draw_centered(g, label, menu_y, menu_size, menu_spacing, color)
+		ui_assets.draw_wood_button(btn, btn_bounds)
+		title_draw_centered(g, label, menu_y, menu_size, menu_spacing, theme.TEXT_INK)
 		menu_y += menu_step
 	}
 

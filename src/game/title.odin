@@ -240,6 +240,17 @@ title_text_bounds :: proc(g: ^Game, text: cstring, y: f32, size, spacing: f32) -
 	return {x - pad, y - pad, m.x + pad * 2, m.y + pad * 2}
 }
 
+title_menu_button_bounds :: proc(g: ^Game, text: cstring, y: f32, size, spacing: f32) -> rl.Rectangle {
+	text_bounds := title_text_bounds(g, text, y, size, spacing)
+	min_w := f32(ui_px(g, 32))
+	min_h := f32(ui_px(g, 16))
+	w := max(text_bounds.width, min_w)
+	h := max(text_bounds.height, min_h)
+	cx := text_bounds.x + text_bounds.width * 0.5
+	cy := text_bounds.y + text_bounds.height * 0.5
+	return {cx - w * 0.5, cy - h * 0.5, w, h}
+}
+
 title_has_save :: proc(g: ^Game) -> bool {
 	return save_exists(g.persist.save_path)
 }

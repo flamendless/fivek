@@ -22,7 +22,12 @@ begin_post_serve :: proc(p: ^People, person_i: int, stats: ^Run_Stats, after_cel
 		}
 	}
 
-	to_lineup := pick_lineup_after_serve(p.rows[person_i].traits.age)
+	to_lineup: bool
+	if after_celebration {
+		to_lineup = p.rows[person_i].behavior.pending_lineup
+	} else {
+		to_lineup = pick_lineup_after_serve(p.rows[person_i].traits.age)
+	}
 	if after_celebration && p.career_stats != nil {
 		if to_lineup && p.career_stats.post_celebrate_lineup == 0 {
 			achievements.try_unlock(p.achievement_state, p.achievement_pending, .SmallActBigChange)
@@ -38,11 +43,31 @@ begin_post_serve :: proc(p: ^People, person_i: int, stats: ^Run_Stats, after_cel
 	}
 }
 
+assign_celebrate_emote :: proc(p: ^People, i: int, lineup: bool) {
+	if p.rows[i].identity.role != .Crowd {
+		p.rows[i].behavior.celebrate_emote = .None
+		return
+	}
+	p.rows[i].behavior.pending_lineup = lineup
+	if lineup {
+		if rand.int_max(2) == 0 {
+			p.rows[i].behavior.celebrate_emote = .Heart
+		} else {
+			p.rows[i].behavior.celebrate_emote = .Exclamation
+		}
+	} else {
+		p.rows[i].behavior.celebrate_emote = .Question
+	}
+}
+
 begin_celebrating :: proc(p: ^People, i: int) {
 	p.rows[i].motion.state = .Celebrating
 	p.rows[i].motion.hop_step = 0
 	p.rows[i].motion.hop_count = u8(CELEBRATE_HOP_MIN + rand.int_max(CELEBRATE_HOP_MAX - CELEBRATE_HOP_MIN + 1))
 	p.rows[i].motion.hop_timer = CELEBRATE_HOP_DURATION
+	if p.rows[i].identity.role == .Crowd {
+		assign_celebrate_emote(p, i, pick_lineup_after_serve(p.rows[i].traits.age))
+	}
 }
 
 try_begin_celebrate :: proc(p: ^People, i: int) -> bool {

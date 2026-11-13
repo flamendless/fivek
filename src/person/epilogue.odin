@@ -27,6 +27,7 @@ epilogue_begin_lineup_celebrate :: proc(p: ^People, i: int) {
 		CELEBRATE_HOP_MIN + (i % (CELEBRATE_HOP_MAX - CELEBRATE_HOP_MIN + 1)),
 	)
 	p.rows[i].motion.hop_timer = CELEBRATE_HOP_DURATION
+	assign_celebrate_emote(p, i, true)
 }
 
 celebrated_bit_bytes :: proc(crowd_count: int) -> int {
@@ -80,6 +81,45 @@ epilogue_apostle_row_x :: proc(world: ^w.World, apostle_chunk: int, apostle_slot
 	return x0 + f32(apostle_slot) * pitch
 }
 
+epilogue_place_crowd_line :: proc(
+	p: ^People,
+	ground_y: f32,
+	lineup_start: f32,
+	pitch: f32,
+) -> f32 {
+	slot: int = 0
+	lineup_tail_x := lineup_start
+	for i in 0 ..< p.crowd_count {
+		row := &p.rows[i]
+		if row.food.served {
+			y := ground_y - row.transform.size_h
+			x :=
+				lineup_start +
+				f32(slot) * pitch +
+				(pitch - row.transform.size_w) * 0.5
+			row.nav.target_x = x
+			row.nav.target_y = y
+			row.nav.line_row = 0
+			row.transform.pos_x = x
+			row.transform.pos_y = y
+			row.transform.base_y = y
+			row.motion.phase = .In_Lineup
+			row.motion.state = .Idle
+			row.transform.dir = -1
+			row.behavior.subbehavior = .None
+			slot += 1
+			right := x + row.transform.size_w
+			if right > lineup_tail_x {
+				lineup_tail_x = right
+			}
+		} else {
+			row.motion.phase = .Gone
+			row.motion.state = .Idle
+		}
+	}
+	return lineup_tail_x
+}
+
 epilogue_layout :: proc(p: ^People, world: ^w.World, ground_y: f32) {
 	if p == nil || world == nil || len(world.chunks) < 2 {
 		return
@@ -103,44 +143,37 @@ epilogue_layout :: proc(p: ^People, world: ^w.World, ground_y: f32) {
 		pitch = max(inner / f32(served_n), f32(6))
 	}
 
-	crowd_span := LINEUP_PAD * 2 + f32(served_n) * pitch
-	crowd_chunks := epilogue_chunks_for_span(crowd_span, chunk_w)
-	last_chunk := len(world.chunks) - 1
-	apostle_chunk := crowd_chunks + EPILOGUE_CHUNK_GAP
-	spawn_chunk := apostle_chunk + 1
-	apostle_chunk = min(apostle_chunk, last_chunk)
-	spawn_chunk = min(max(spawn_chunk, apostle_chunk + 1), last_chunk)
-	p.epilogue_apostle_chunk = apostle_chunk
-	p.epilogue_spawn_chunk = spawn_chunk
-
 	lineup_start := chunk0 + LINEUP_PAD
 	lineup_start = max(lineup_start, EPILOGUE_LINEUP_MIN_X)
 
-	slot: int = 0
-	for i in 0 ..< p.crowd_count {
-		row := &p.rows[i]
-		if row.food.served {
-			y := ground_y - row.transform.size_h
-			x :=
-				lineup_start +
-				f32(slot) * pitch +
-				(pitch - row.transform.size_w) * 0.5
-			row.nav.target_x = x
-			row.nav.target_y = y
-			row.nav.line_row = 0
-			row.transform.pos_x = x
-			row.transform.pos_y = y
-			row.transform.base_y = y
-			row.motion.phase = .In_Lineup
-			row.motion.state = .Idle
-			row.transform.dir = -1
-			row.behavior.subbehavior = .None
-			slot += 1
-		} else {
-			row.motion.phase = .Gone
-			row.motion.state = .Idle
+	last_chunk := len(world.chunks) - 1
+	apostle_chunk: int
+	spawn_chunk: int
+	lineup_tail_x: f32
+
+	for attempt in 0 ..< 2 {
+		lineup_tail_x = epilogue_place_crowd_line(p, ground_y, lineup_start, pitch)
+		span_from_chunk0 := lineup_tail_x - chunk0
+		crowd_chunks := epilogue_chunks_for_span(span_from_chunk0, chunk_w)
+		tail_chunk := w.chunk_index_at_x(world, lineup_tail_x)
+		apostle_chunk = max(crowd_chunks + EPILOGUE_CHUNK_GAP, tail_chunk + EPILOGUE_CHUNK_GAP)
+		spawn_chunk = apostle_chunk + 1
+		apostle_chunk = min(apostle_chunk, last_chunk)
+		spawn_chunk = min(max(spawn_chunk, apostle_chunk + 1), last_chunk)
+
+		apostle_left := world.chunks[apostle_chunk].x_min
+		if apostle_left > lineup_tail_x + LINEUP_PAD {
+			break
 		}
+		if attempt == 1 || served_n <= 1 {
+			break
+		}
+		room := apostle_left - LINEUP_PAD - lineup_start
+		pitch = max(room / f32(served_n), f32(6))
 	}
+
+	p.epilogue_apostle_chunk = apostle_chunk
+	p.epilogue_spawn_chunk = spawn_chunk
 
 	apostle_seen: [APOSTLE_COUNT]bool
 	for i in p.crowd_count ..< len(p.rows) {
@@ -191,7 +224,7 @@ epilogue_face_player :: proc(p: ^People, player_x: f32) {
 }
 
 epilogue_tick_celebrations :: proc(p: ^People, view: rl.Rectangle, frame: int, dt: f32) {
-	for i in 0 ..< p.crowd_count {
+	for i in 0 ..< len(p.rows) {
 		if p.rows[i].motion.phase == .Gone {
 			continue
 		}

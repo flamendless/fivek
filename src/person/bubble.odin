@@ -3,34 +3,33 @@ package person
 import "core:fmt"
 import "core:strings"
 import rl "vendor:raylib"
+import ui_assets "../ui"
 import "../theme"
 
-CREDITS_SPEECH_FONT :: 11
-CREDITS_SPEECH_WRAP_WIDTH :: 132
-CREDITS_SPEECH_LINE_GAP :: 2
-CREDITS_BUBBLE_PAD :: 5
+CREDITS_SPEECH_FONT :: 14
+CREDITS_SPEECH_WRAP_WIDTH :: 156
+CREDITS_SPEECH_LINE_GAP :: 3
+CREDITS_BUBBLE_PAD :: 10
+SPEECH_PARCHMENT_EXTRA: f32 : 0 // cozy_content_pad default (2px)
 CREDITS_SPEECH_MAX_LINES :: 8
 CREDITS_SPEECH_LINE_BUF :: 128
 
 draw_speech_bubble :: proc(cx: f32, anchor_y: f32, w: f32, h: f32) {
 	bx := cx - w * 0.5
 	by := anchor_y - h
-	rl.DrawRectangleRec({bx, by, w, h}, theme.BUBBLE_FILL)
-	rl.DrawRectangleLinesEx({bx, by, w, h}, 1, theme.BUBBLE_BORDER)
+	ui_assets.draw_parchment_dialog({bx, by, w, h})
 }
 
 draw_speech_bubble_text :: proc(cx: f32, anchor_y: f32, text: cstring, font: i32) {
 	tw := f32(rl.MeasureText(text, font))
-	bubble_w := tw + BUBBLE_PAD * 2
-	bubble_h := f32(font) + BUBBLE_PAD * 2
+	inner_h := f32(font)
+	bubble_w := ui_assets.parchment_width_for_inner(tw, SPEECH_PARCHMENT_EXTRA)
+	bubble_h := ui_assets.parchment_height_for_inner(inner_h, SPEECH_PARCHMENT_EXTRA)
 	draw_speech_bubble(cx, anchor_y, bubble_w, bubble_h)
-	rl.DrawText(
-		text,
-		i32(cx - tw * 0.5),
-		i32(anchor_y - bubble_h + BUBBLE_PAD),
-		font,
-		theme.TEXT_INK,
-	)
+	dest := rl.Rectangle{cx - bubble_w * 0.5, anchor_y - bubble_h, bubble_w, bubble_h}
+	content := ui_assets.parchment_content(dest, SPEECH_PARCHMENT_EXTRA)
+	ty := content.y + (content.height - f32(font)) * 0.5
+	rl.DrawText(text, i32(content.x), i32(ty), font, theme.TEXT_INK)
 }
 
 @(private = "file")
@@ -150,25 +149,23 @@ draw_speech_bubble_named_wrap :: proc(
 	}
 
 	line_h := f32(font)
-	bubble_w: f32 = 0
+	text_w: f32 = 0
 	for i in 0 ..< n {
 		line_w := f32(rl.MeasureText(cstring(&bufs[i][0]), font))
 		if i == 0 {
 			line_w += prefix_w
 		}
-		bubble_w = max(bubble_w, line_w)
+		text_w = max(text_w, line_w)
 	}
-	bubble_w += CREDITS_BUBBLE_PAD * 2
-	bubble_w = max(bubble_w, wrap_w * 0.5)
-
-	bubble_h :=
-		CREDITS_BUBBLE_PAD * 2 + f32(n) * line_h + f32(max(n - 1, 0)) * CREDITS_SPEECH_LINE_GAP
+	inner_h := f32(n)*line_h + f32(max(n - 1, 0))*CREDITS_SPEECH_LINE_GAP
+	bubble_w := ui_assets.parchment_width_for_inner(text_w, SPEECH_PARCHMENT_EXTRA)
+	bubble_h := ui_assets.parchment_height_for_inner(inner_h, SPEECH_PARCHMENT_EXTRA)
 	draw_speech_bubble(cx, anchor_y, bubble_w, bubble_h)
 
-	bx := cx - bubble_w * 0.5
-	by := anchor_y - bubble_h
-	content_x := bx + CREDITS_BUBBLE_PAD
-	ty := by + CREDITS_BUBBLE_PAD
+	dest := rl.Rectangle{cx - bubble_w * 0.5, anchor_y - bubble_h, bubble_w, bubble_h}
+	content := ui_assets.parchment_content(dest, SPEECH_PARCHMENT_EXTRA)
+	content_x := content.x
+	ty := content.y
 
 	for i in 0 ..< n {
 		if i == 0 {

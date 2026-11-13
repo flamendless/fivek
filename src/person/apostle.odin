@@ -20,6 +20,10 @@ APOSTLE_LABEL_FONT :: 8
 BUBBLE_PAD :: 3.0
 REQ_NUM_GAP :: 4.0
 
+lineup_staging_x_max :: proc(chunk_width: f32) -> f32 {
+	return APOSTLE_X_FRAC_LO * chunk_width - LINEUP_PAD
+}
+
 spawn_apostles :: proc(p: ^People, seed: u64, chunk_width: f32, ground_y: f32) {
 	for a in 0 ..< APOSTLE_COUNT {
 		p.apostle_requirements[a] = roll_apostle_requirements(seed, a)

@@ -36,6 +36,7 @@ needs_food :: proc(p: ^People, i: int) -> bool {
 	row := p.rows[i]
 	return row.motion.phase == .Active &&
 		!row.food.served &&
+		row.behavior.sleep_remaining == 0 &&
 		row.motion.state != .Celebrating &&
 		(!row.food.has_fish || !row.food.has_bread)
 }
@@ -79,6 +80,14 @@ apply_give_item :: proc(p: ^People, i: int, item: Give_Item, player_cx: f32, sta
 	if !is_interactable(p, i) {
 		return false
 	}
+	if p.rows[i].behavior.sleep_remaining > 0 {
+		p.rows[i].behavior.sleep_remaining -= 1
+		begin_wake_emote_pulse(p, i)
+		return true
+	}
+	had_fish := p.rows[i].food.has_fish
+	had_bread := p.rows[i].food.has_bread
+	first_item := !had_fish && !had_bread
 	gave_new := false
 	switch item {
 	case .Fish:
@@ -102,6 +111,9 @@ apply_give_item :: proc(p: ^People, i: int, item: Give_Item, player_cx: f32, sta
 			case .Bread:
 				stat_add(stats, .Bread_Given, 1)
 			}
+		}
+		if first_item && roll_first_give_emote() {
+			p.rows[i].behavior.reaction_emote_timer = REACTION_EMOTE_DURATION
 		}
 		if !try_begin_celebrate(p, i) && age_flees_after_food(p.rows[i].traits.age) {
 			begin_flee_after_food(p, i, player_cx)

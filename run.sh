@@ -22,7 +22,7 @@ usage() {
 Usage: ./run.sh <command> [args...]
 
 Commands:
-	run          Build and run the game (DEBUG: STATE=...|postgame|end|end:N — end=post-game roam, end:N = N NPCs in lineup)
+	run          Build and run the game (DEBUG: STATE=title|stats|achievements|credits|tutorial|play|postgame|end|end:N|…)
 	autotest     Build and run headless autoplay test
 	build        Build native game binary only
 	check        Type-check game and autotest entrypoints

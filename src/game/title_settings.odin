@@ -1,6 +1,8 @@
 package game
 
 import rl "vendor:raylib"
+import "../assets"
+import ui_assets "../ui"
 import "../theme"
 
 SETTINGS_CREDITS_LABEL :: "Credits"
@@ -20,7 +22,7 @@ title_settings_layout :: proc(g: ^Game) -> (credits_y: f32, menu_size, menu_spac
 
 title_settings_credits_bounds :: proc(g: ^Game) -> rl.Rectangle {
 	credits_y, menu_size, menu_spacing := title_settings_layout(g)
-	return title_text_bounds(g, SETTINGS_CREDITS_LABEL, credits_y, menu_size, menu_spacing)
+	return title_menu_button_bounds(g, SETTINGS_CREDITS_LABEL, credits_y, menu_size, menu_spacing)
 }
 
 update_title_settings :: proc(g: ^Game, mouse: rl.Vector2, clicked: bool) -> bool {
@@ -45,10 +47,12 @@ draw_title_settings_overlay :: proc(g: ^Game) {
 	h_m := title_measure(g, "Settings", settings_size, settings_spacing)
 	sy := credits_y - h_m.y - block_gap
 	title_draw_centered(g, "Settings", sy, settings_size, settings_spacing, rl.WHITE)
-	color := rl.LIGHTGRAY
+	btn_bounds := title_settings_credits_bounds(g)
+	btn: assets.Cozy_Button = .Normal
 	if g.title.hovered_settings == 0 {
-		color = rl.WHITE
+		btn = rl.IsMouseButtonDown(.LEFT) ? .Pressed : .Hover
 	}
-	title_draw_centered(g, SETTINGS_CREDITS_LABEL, credits_y, menu_size, menu_spacing, color)
+	ui_assets.draw_wood_button(btn, btn_bounds)
+	title_draw_centered(g, SETTINGS_CREDITS_LABEL, credits_y, menu_size, menu_spacing, theme.TEXT_INK)
 	draw_nav_button(g, "Back")
 }

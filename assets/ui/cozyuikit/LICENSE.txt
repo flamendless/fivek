@@ -1,0 +1,14 @@
+Cozy UI Kit - License
+Copyright (c) 2026 Benjamin De Pourquery
+
+1. Grant. When you buy or download this pack, you receive a worldwide, non-exclusive, perpetual licence
+   to use the assets in any number of personal or commercial projects, including games, software,
+   websites, videos and printed material. You may modify them.
+2. Restrictions. You may not:
+   a) sell, sublicense, share or redistribute the assets (original or modified) as standalone files
+      or as part of any asset pack, template, tileset or similar resource;
+   b) claim the assets as your own creation;
+   c) use the assets as training data for AI or machine-learning models;
+   d) use the assets in a logo or trademark.
+3. Attribution. Not required, but appreciated: "Cozy UI Kit by Benjamin De Pourquery".
+4. No warranty. The assets are provided "as is", with no warranty of any kind.

@@ -127,7 +127,7 @@ update_playing :: proc(g: ^Game) {
 		if input.key_pressed(.M) {
 			person.debug_serve_next(g.scene.people)
 		}
-		if input.key_pressed(.L) {
+		if input.key_pressed(.K) {
 			person.debug_recruit_nearest_apostle(
 				g.scene.people,
 				g.scene.player.pos,

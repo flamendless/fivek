@@ -1,8 +1,11 @@
 package game
 
 import "core:math"
+import "core:math/rand"
 import rl "vendor:raylib"
 import "../achievements"
+import "../config"
+import ui_assets "../ui"
 import "../theme"
 
 ACHIEVEMENT_TOAST_HOLD_S :: 3.5
@@ -118,13 +121,12 @@ update_achievement_toasts :: proc(g: ^Game, dt: f32) {
 }
 
 achievement_toast_panel_w :: proc(g: ^Game, title, desc: cstring) -> i32 {
-	title_font := ui_font(g, ACHIEVEMENT_TOAST_TITLE_DESIGN)
-	desc_font := ui_font(g, ACHIEVEMENT_TOAST_DESC_DESIGN)
 	pad := ui_px(g, ACHIEVEMENT_TOAST_PAD_DESIGN)
-	tw := rl.MeasureText(title, title_font)
-	dw := rl.MeasureText(desc, desc_font)
-	inner := max(tw, dw)
-	return inner + pad * 2
+	tw := title_measure_default(g, title, ACHIEVEMENT_TOAST_TITLE_DESIGN).x
+	dw := title_measure_default(g, desc, ACHIEVEMENT_TOAST_DESC_DESIGN).x
+	outline := title_text_outline_px(g) * 2
+	inner := max(tw, dw) + outline
+	return i32(inner) + pad * 2
 }
 
 draw_achievement_toasts :: proc(g: ^Game) {
@@ -149,15 +151,25 @@ draw_achievement_toasts :: proc(g: ^Game) {
 		x := i32((g.view.game_size.x - f32(panel_w)) * 0.5)
 		y := i32(e.display_y)
 
-		scrim := theme.OVERLAY_SCRIM_180
-		scrim.a = u8(f32(scrim.a) * alpha)
-		rl.DrawRectangle(x, y, panel_w, panel_h, scrim)
+		bg := rl.WHITE
+		bg.a = u8(f32(255) * alpha)
+		dest := rl.Rectangle{f32(x), f32(y), f32(panel_w), f32(panel_h)}
+		ui_assets.draw_parchment_dialog(dest, bg)
+		content := ui_assets.parchment_content(dest, 0)
 
-		fill := rl.Color{255, 255, 255, u8(f32(255) * alpha)}
-		outline := rl.Color{0, 0, 0, u8(f32(255) * alpha)}
-		ty := f32(y + pad)
+		fill := rl.Color{0, 0, 0, u8(f32(255) * alpha)}
+		outline := fill
+		ty := content.y + f32(pad)
 		title_draw_centered_default_outlined(g, def.title, ty, ACHIEVEMENT_TOAST_TITLE_DESIGN, fill, outline)
 		ty += f32(title_font) + f32(gap)
 		title_draw_centered_default(g, def.description, ty, ACHIEVEMENT_TOAST_DESC_DESIGN, fill)
+	}
+}
+
+when config.IS_DEBUG {
+	// Toast only — does not mark achievements unlocked or persist.
+	debug_queue_random_achievement_toast :: proc(g: ^Game) {
+		id := achievements.Id(rand.int_max(achievements.ACHIEVEMENT_COUNT))
+		append(&g.achievement_pending, id)
 	}
 }

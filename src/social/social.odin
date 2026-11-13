@@ -1,6 +1,7 @@
 package social
 
 import "../assets"
+import ui_assets "../ui"
 import rl "vendor:raylib"
 import "../theme"
 
@@ -124,19 +125,24 @@ update :: proc(
 }
 
 draw_tooltip_above :: proc(text: cstring, anchor: rl.Rectangle, ui_scale: f32) {
-	font := ui_px(ui_scale, 10)
+	font := ui_px(ui_scale, 14)
 	spacing := f32(ui_px(ui_scale, 1))
 	size := f32(font)
-	w := rl.MeasureTextEx(rl.GetFontDefault(), text, size, spacing).x
-	pad_x := f32(ui_px(ui_scale, 3))
-	pad_y := f32(ui_px(ui_scale, 2))
-	tw := w + pad_x * 2
-	th := size + pad_y * 2
+	font_rl := rl.GetFontDefault()
+	meas := rl.MeasureTextEx(font_rl, text, size, spacing)
+	outer := ui_assets.wood_panel_outer_size(meas.x, meas.y, 0)
 	cx := anchor.x + anchor.width * 0.5
-	tx := cx - tw * 0.5
-	ty := anchor.y - th - f32(ui_px(ui_scale, 2))
-	rl.DrawRectangle(i32(tx), i32(ty), i32(tw), i32(th), theme.OVERLAY_SCRIM_180)
-	rl.DrawTextEx(rl.GetFontDefault(), text, {tx + pad_x, ty + pad_y}, size, spacing, rl.WHITE)
+	gap := f32(ui_px(ui_scale, 4))
+	ty := anchor.y - outer.y - gap
+	tx := cx - outer.x * 0.5
+	panel := rl.Rectangle{tx, ty, outer.x, outer.y}
+	ui_assets.draw_wood_panel(panel)
+	content := ui_assets.wood_panel_content(panel, 0)
+	text_pos := rl.Vector2{
+		content.x + (content.width - meas.x) * 0.5,
+		content.y + (content.height - meas.y) * 0.5,
+	}
+	rl.DrawTextEx(font_rl, text, text_pos, size, spacing, theme.TEXT_INK)
 }
 
 draw_row_at :: proc(

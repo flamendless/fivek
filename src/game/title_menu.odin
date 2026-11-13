@@ -38,7 +38,7 @@ update_title :: proc(g: ^Game) {
 	for slot in 0 ..< title_menu_slot_count(g) {
 		item := title_menu_slot_item(g, slot)
 		label := title_menu_label(item, g)
-		bounds := title_text_bounds(g, label, menu_y, menu_size, menu_spacing)
+		bounds := title_menu_button_bounds(g, label, menu_y, menu_size, menu_spacing)
 		if rl.CheckCollisionPointRec(mouse, bounds) {
 			g.title.hovered_menu = slot
 			if clicked {

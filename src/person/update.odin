@@ -30,6 +30,14 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		break
 	}
 
+	if p.rows[i].behavior.reaction_emote_timer > 0 {
+		p.rows[i].behavior.reaction_emote_timer -= dt
+		if p.rows[i].behavior.reaction_emote_timer <= 0 {
+			p.rows[i].behavior.reaction_emote_timer = 0
+		}
+	}
+	tick_wake_emote(p, i, dt)
+
 	if update_subbehavior(p, i, dt) {
 		return
 	}
@@ -46,11 +54,13 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 				} else if p.epilogue_active && p.rows[i].identity.role == .Crowd {
 					p.rows[i].transform.pos_y = p.rows[i].transform.base_y
 					p.rows[i].motion.hop_step = 0
+					p.rows[i].behavior.celebrate_emote = .None
 					p.rows[i].motion.state = .Idle
 					p.rows[i].motion.phase = .In_Lineup
 				} else {
 					p.rows[i].transform.pos_y = p.rows[i].transform.base_y
 					p.rows[i].motion.hop_step = 0
+					p.rows[i].behavior.celebrate_emote = .None
 					begin_post_serve(p, i, p.run_stats, true)
 				}
 			} else {
@@ -64,6 +74,9 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 
 	case .Idle:
 		p.rows[i].motion.idle_anim_t += dt
+		if p.rows[i].behavior.sleep_remaining > 0 {
+			return
+		}
 		if p.epilogue_active && p.rows[i].identity.role == .Crowd {
 			return
 		}

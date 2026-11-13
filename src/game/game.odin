@@ -210,6 +210,9 @@ update :: proc(g: ^Game) {
 			debug_reload_current_state(g)
 			return
 		}
+		if input.key_pressed(.L) {
+			debug_queue_random_achievement_toast(g)
+		}
 	}
 	title_like := g.mode == .Title
 	if title_like {

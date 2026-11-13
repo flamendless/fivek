@@ -7,6 +7,7 @@ import "../config"
 import "../input"
 import "../person"
 import "../player"
+import ui_assets "../ui"
 import "../theme"
 import w "../world"
 
@@ -122,6 +123,10 @@ update_post_game :: proc(g: ^Game) {
 		update_post_game_roam(g, dt)
 	}
 
+	if g.scene.people != nil {
+		view := camera_view_rect(g)
+		person.epilogue_tick_celebrations(g.scene.people, view, g.frame, dt)
+	}
 }
 
 update_post_game_roam :: proc(g: ^Game, dt: f32) {
@@ -157,8 +162,6 @@ update_post_game_roam :: proc(g: ^Game, dt: f32) {
 	}
 
 	update_camera(g)
-	view := camera_view_rect(g)
-	person.epilogue_tick_celebrations(g.scene.people, view, g.frame, dt)
 
 	pr := player.bounds_rect(pl)
 	person.epilogue_tick_celebrate_delays(
@@ -369,8 +372,22 @@ when config.IS_DEBUG {
 		x := pad
 		y := pad
 		rl.BeginMode2D(g.cameras.ui_camera)
-			rl.DrawRectangle(x - 2, y - 1, tw + 4, font + 2, theme.OVERLAY_SCRIM_160)
-			rl.DrawText(label, x, y, font, theme.DEBUG_CYAN)
+			gutter := f32(ui_px(g, 6))
+			panel := rl.Rectangle{
+				f32(x) - gutter,
+				f32(y) - gutter,
+				f32(tw) + gutter * 2,
+				f32(font) + gutter * 2,
+			}
+			ui_assets.draw_wood_panel(panel)
+			content := ui_assets.wood_panel_content(panel, 0)
+			rl.DrawText(
+				label,
+				i32(content.x),
+				i32(content.y + (content.height - f32(font)) * 0.5),
+				font,
+				theme.TEXT_INK,
+			)
 		rl.EndMode2D()
 	}
 }

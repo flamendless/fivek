@@ -3,8 +3,8 @@ package person
 import "../assets"
 import "../character"
 import "../food"
-import "../theme"
 import "../wardrobe"
+import ui_assets "../ui"
 import rl "vendor:raylib"
 
 FOOD_BUBBLE_ABOVE :: 8.0
@@ -41,17 +41,18 @@ draw_food_bubble :: proc(p: ^People, i: int) {
 	if row.food.has_fish && row.food.has_bread {
 		inner_w = icon_d + gap + icon_d
 	}
-	bubble_w := inner_w + f32(BUBBLE_PAD) * 2
-	bubble_h := icon_d + f32(BUBBLE_PAD) * 2
+	bubble_w := ui_assets.parchment_width_for_inner(inner_w, 0)
+	bubble_h := ui_assets.parchment_height_for_inner(icon_d, 0)
 	bx := pcx - bubble_w * 0.5
 	by := row.transform.pos_y - bubble_h - FOOD_BUBBLE_ABOVE
-	rl.DrawRectangleRec({bx, by, bubble_w, bubble_h}, theme.BUBBLE_FILL)
-	rl.DrawRectangleLinesEx({bx, by, bubble_w, bubble_h}, 1, theme.BUBBLE_BORDER)
-	cy := by + f32(BUBBLE_PAD) + icon_r
+	dest := rl.Rectangle{bx, by, bubble_w, bubble_h}
+	ui_assets.draw_parchment_dialog(dest)
+	content := ui_assets.parchment_content(dest, 0)
+	cy := content.y + content.height * 0.5
 
 	if row.food.has_fish && row.food.has_bread {
-		fish_x := bx + f32(BUBBLE_PAD) + icon_r
-		bread_x := bx + bubble_w - f32(BUBBLE_PAD) - icon_r
+		fish_x := content.x + icon_r
+		bread_x := content.x + content.width - icon_r
 		food.draw_icon(
 			assets.atlas(.Fish),
 			int(row.food.fish_icon),
@@ -72,7 +73,7 @@ draw_food_bubble :: proc(p: ^People, i: int) {
 			int(row.food.fish_icon),
 			fish.cell,
 			fish.cols,
-			{pcx, cy},
+			{content.x + content.width * 0.5, cy},
 		)
 	} else {
 		food.draw_icon(
@@ -80,7 +81,7 @@ draw_food_bubble :: proc(p: ^People, i: int) {
 			int(row.food.bread_icon),
 			bread.cell,
 			bread.cols,
-			{pcx, cy},
+			{content.x + content.width * 0.5, cy},
 		)
 	}
 }

@@ -1,0 +1,960 @@
+{
+ "version": "1.2",
+ "base_scale": "1x (pixel sizes and margins below are at 1x; scaled values are given per export)",
+ "assets": {
+  "panel_wood": {
+   "name": "panel_wood",
+   "category": "panels",
+   "width": 24,
+   "height": 24,
+   "nine_slice": {
+    "left": 6,
+    "top": 6,
+    "right": 6,
+    "bottom": 6
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 6,
+     "patch_margin_top": 6,
+     "patch_margin_right": 6,
+     "patch_margin_bottom": 6
+    },
+    "2x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 12
+    },
+    "3x": {
+     "patch_margin_left": 18,
+     "patch_margin_top": 18,
+     "patch_margin_right": 18,
+     "patch_margin_bottom": 18
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     6,
+     6,
+     6,
+     6
+    ],
+    "2x": [
+     12,
+     12,
+     12,
+     12
+    ],
+    "3x": [
+     18,
+     18,
+     18,
+     18
+    ]
+   },
+   "recommended_mode": "tile",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 1,
+    "axis_stretch_vertical": 1,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Tiled"
+  },
+  "window_wood": {
+   "name": "window_wood",
+   "category": "panels",
+   "width": 24,
+   "height": 24,
+   "nine_slice": {
+    "left": 6,
+    "top": 13,
+    "right": 6,
+    "bottom": 6
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 6,
+     "patch_margin_top": 13,
+     "patch_margin_right": 6,
+     "patch_margin_bottom": 6
+    },
+    "2x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 26,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 12
+    },
+    "3x": {
+     "patch_margin_left": 18,
+     "patch_margin_top": 39,
+     "patch_margin_right": 18,
+     "patch_margin_bottom": 18
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     6,
+     6,
+     6,
+     13
+    ],
+    "2x": [
+     12,
+     12,
+     12,
+     26
+    ],
+    "3x": [
+     18,
+     18,
+     18,
+     39
+    ]
+   },
+   "recommended_mode": "tile",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 1,
+    "axis_stretch_vertical": 1,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Tiled",
+   "note": "title bar: rows 3 to 10"
+  },
+  "button_wood_normal": {
+   "name": "button_wood_normal",
+   "category": "buttons",
+   "width": 32,
+   "height": 16,
+   "nine_slice": {
+    "left": 4,
+    "top": 4,
+    "right": 4,
+    "bottom": 5
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 4,
+     "patch_margin_top": 4,
+     "patch_margin_right": 4,
+     "patch_margin_bottom": 5
+    },
+    "2x": {
+     "patch_margin_left": 8,
+     "patch_margin_top": 8,
+     "patch_margin_right": 8,
+     "patch_margin_bottom": 10
+    },
+    "3x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 15
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     4,
+     5,
+     4,
+     4
+    ],
+    "2x": [
+     8,
+     10,
+     8,
+     8
+    ],
+    "3x": [
+     12,
+     15,
+     12,
+     12
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "button_wood_hover": {
+   "name": "button_wood_hover",
+   "category": "buttons",
+   "width": 32,
+   "height": 16,
+   "nine_slice": {
+    "left": 4,
+    "top": 4,
+    "right": 4,
+    "bottom": 5
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 4,
+     "patch_margin_top": 4,
+     "patch_margin_right": 4,
+     "patch_margin_bottom": 5
+    },
+    "2x": {
+     "patch_margin_left": 8,
+     "patch_margin_top": 8,
+     "patch_margin_right": 8,
+     "patch_margin_bottom": 10
+    },
+    "3x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 15
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     4,
+     5,
+     4,
+     4
+    ],
+    "2x": [
+     8,
+     10,
+     8,
+     8
+    ],
+    "3x": [
+     12,
+     15,
+     12,
+     12
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": false,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "button_wood_pressed": {
+   "name": "button_wood_pressed",
+   "category": "buttons",
+   "width": 32,
+   "height": 16,
+   "nine_slice": {
+    "left": 4,
+    "top": 4,
+    "right": 4,
+    "bottom": 5
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 4,
+     "patch_margin_top": 4,
+     "patch_margin_right": 4,
+     "patch_margin_bottom": 5
+    },
+    "2x": {
+     "patch_margin_left": 8,
+     "patch_margin_top": 8,
+     "patch_margin_right": 8,
+     "patch_margin_bottom": 10
+    },
+    "3x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 15
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     4,
+     5,
+     4,
+     4
+    ],
+    "2x": [
+     8,
+     10,
+     8,
+     8
+    ],
+    "3x": [
+     12,
+     15,
+     12,
+     12
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": false,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "button_wood_disabled": {
+   "name": "button_wood_disabled",
+   "category": "buttons",
+   "width": 32,
+   "height": 16,
+   "nine_slice": {
+    "left": 4,
+    "top": 4,
+    "right": 4,
+    "bottom": 5
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 4,
+     "patch_margin_top": 4,
+     "patch_margin_right": 4,
+     "patch_margin_bottom": 5
+    },
+    "2x": {
+     "patch_margin_left": 8,
+     "patch_margin_top": 8,
+     "patch_margin_right": 8,
+     "patch_margin_bottom": 10
+    },
+    "3x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 15
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     4,
+     5,
+     4,
+     4
+    ],
+    "2x": [
+     8,
+     10,
+     8,
+     8
+    ],
+    "3x": [
+     12,
+     15,
+     12,
+     12
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "bar_frame_wood": {
+   "name": "bar_frame_wood",
+   "category": "bars",
+   "width": 32,
+   "height": 10,
+   "nine_slice": {
+    "left": 3,
+    "top": 3,
+    "right": 3,
+    "bottom": 3
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 3,
+     "patch_margin_top": 3,
+     "patch_margin_right": 3,
+     "patch_margin_bottom": 3
+    },
+    "2x": {
+     "patch_margin_left": 6,
+     "patch_margin_top": 6,
+     "patch_margin_right": 6,
+     "patch_margin_bottom": 6
+    },
+    "3x": {
+     "patch_margin_left": 9,
+     "patch_margin_top": 9,
+     "patch_margin_right": 9,
+     "patch_margin_bottom": 9
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     3,
+     3,
+     3,
+     3
+    ],
+    "2x": [
+     6,
+     6,
+     6,
+     6
+    ],
+    "3x": [
+     9,
+     9,
+     9,
+     9
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "bar_fill_health": {
+   "name": "bar_fill_health",
+   "category": "bars",
+   "width": 8,
+   "height": 5,
+   "nine_slice": {
+    "left": 1,
+    "top": 1,
+    "right": 1,
+    "bottom": 1
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 1,
+     "patch_margin_top": 1,
+     "patch_margin_right": 1,
+     "patch_margin_bottom": 1
+    },
+    "2x": {
+     "patch_margin_left": 2,
+     "patch_margin_top": 2,
+     "patch_margin_right": 2,
+     "patch_margin_bottom": 2
+    },
+    "3x": {
+     "patch_margin_left": 3,
+     "patch_margin_top": 3,
+     "patch_margin_right": 3,
+     "patch_margin_bottom": 3
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "2x": [
+     2,
+     2,
+     2,
+     2
+    ],
+    "3x": [
+     3,
+     3,
+     3,
+     3
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": false,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "bar_fill_mana": {
+   "name": "bar_fill_mana",
+   "category": "bars",
+   "width": 8,
+   "height": 5,
+   "nine_slice": {
+    "left": 1,
+    "top": 1,
+    "right": 1,
+    "bottom": 1
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 1,
+     "patch_margin_top": 1,
+     "patch_margin_right": 1,
+     "patch_margin_bottom": 1
+    },
+    "2x": {
+     "patch_margin_left": 2,
+     "patch_margin_top": 2,
+     "patch_margin_right": 2,
+     "patch_margin_bottom": 2
+    },
+    "3x": {
+     "patch_margin_left": 3,
+     "patch_margin_top": 3,
+     "patch_margin_right": 3,
+     "patch_margin_bottom": 3
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "2x": [
+     2,
+     2,
+     2,
+     2
+    ],
+    "3x": [
+     3,
+     3,
+     3,
+     3
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": false,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "slot_normal": {
+   "name": "slot_normal",
+   "category": "slots",
+   "width": 18,
+   "height": 18,
+   "nine_slice": {
+    "left": 4,
+    "top": 4,
+    "right": 4,
+    "bottom": 4
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 4,
+     "patch_margin_top": 4,
+     "patch_margin_right": 4,
+     "patch_margin_bottom": 4
+    },
+    "2x": {
+     "patch_margin_left": 8,
+     "patch_margin_top": 8,
+     "patch_margin_right": 8,
+     "patch_margin_bottom": 8
+    },
+    "3x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 12
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     4,
+     4,
+     4,
+     4
+    ],
+    "2x": [
+     8,
+     8,
+     8,
+     8
+    ],
+    "3x": [
+     12,
+     12,
+     12,
+     12
+    ]
+   },
+   "recommended_mode": "tile",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 1,
+    "axis_stretch_vertical": 1,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Tiled"
+  },
+  "slot_selected": {
+   "name": "slot_selected",
+   "category": "slots",
+   "width": 18,
+   "height": 18,
+   "nine_slice": {
+    "left": 4,
+    "top": 4,
+    "right": 4,
+    "bottom": 4
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 4,
+     "patch_margin_top": 4,
+     "patch_margin_right": 4,
+     "patch_margin_bottom": 4
+    },
+    "2x": {
+     "patch_margin_left": 8,
+     "patch_margin_top": 8,
+     "patch_margin_right": 8,
+     "patch_margin_bottom": 8
+    },
+    "3x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 12
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     4,
+     4,
+     4,
+     4
+    ],
+    "2x": [
+     8,
+     8,
+     8,
+     8
+    ],
+    "3x": [
+     12,
+     12,
+     12,
+     12
+    ]
+   },
+   "recommended_mode": "tile",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 1,
+    "axis_stretch_vertical": 1,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Tiled"
+  },
+  "tab_wood_active": {
+   "name": "tab_wood_active",
+   "category": "tabs",
+   "width": 24,
+   "height": 12,
+   "nine_slice": {
+    "left": 4,
+    "top": 4,
+    "right": 4,
+    "bottom": 2
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 4,
+     "patch_margin_top": 4,
+     "patch_margin_right": 4,
+     "patch_margin_bottom": 2
+    },
+    "2x": {
+     "patch_margin_left": 8,
+     "patch_margin_top": 8,
+     "patch_margin_right": 8,
+     "patch_margin_bottom": 4
+    },
+    "3x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 6
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     4,
+     2,
+     4,
+     4
+    ],
+    "2x": [
+     8,
+     4,
+     8,
+     8
+    ],
+    "3x": [
+     12,
+     6,
+     12,
+     12
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "tab_wood_inactive": {
+   "name": "tab_wood_inactive",
+   "category": "tabs",
+   "width": 24,
+   "height": 12,
+   "nine_slice": {
+    "left": 4,
+    "top": 4,
+    "right": 4,
+    "bottom": 2
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 4,
+     "patch_margin_top": 4,
+     "patch_margin_right": 4,
+     "patch_margin_bottom": 2
+    },
+    "2x": {
+     "patch_margin_left": 8,
+     "patch_margin_top": 8,
+     "patch_margin_right": 8,
+     "patch_margin_bottom": 4
+    },
+    "3x": {
+     "patch_margin_left": 12,
+     "patch_margin_top": 12,
+     "patch_margin_right": 12,
+     "patch_margin_bottom": 6
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     4,
+     2,
+     4,
+     4
+    ],
+    "2x": [
+     8,
+     4,
+     8,
+     8
+    ],
+    "3x": [
+     12,
+     6,
+     12,
+     12
+    ]
+   },
+   "recommended_mode": "stretch",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 0,
+    "axis_stretch_vertical": 0,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Sliced"
+  },
+  "checkbox_off": {
+   "name": "checkbox_off",
+   "category": "toggles",
+   "width": 10,
+   "height": 10
+  },
+  "checkbox_on": {
+   "name": "checkbox_on",
+   "category": "toggles",
+   "width": 10,
+   "height": 10
+  },
+  "dialog_parchment": {
+   "name": "dialog_parchment",
+   "category": "dialogs",
+   "width": 32,
+   "height": 24,
+   "nine_slice": {
+    "left": 5,
+    "top": 5,
+    "right": 5,
+    "bottom": 5
+   },
+   "godot_patch_margin": {
+    "1x": {
+     "patch_margin_left": 5,
+     "patch_margin_top": 5,
+     "patch_margin_right": 5,
+     "patch_margin_bottom": 5
+    },
+    "2x": {
+     "patch_margin_left": 10,
+     "patch_margin_top": 10,
+     "patch_margin_right": 10,
+     "patch_margin_bottom": 10
+    },
+    "3x": {
+     "patch_margin_left": 15,
+     "patch_margin_top": 15,
+     "patch_margin_right": 15,
+     "patch_margin_bottom": 15
+    }
+   },
+   "unity_sprite_border_LBRT": {
+    "1x": [
+     5,
+     5,
+     5,
+     5
+    ],
+    "2x": [
+     10,
+     10,
+     10,
+     10
+    ],
+    "3x": [
+     15,
+     15,
+     15,
+     15
+    ]
+   },
+   "recommended_mode": "tile",
+   "tile_safe": true,
+   "godot_axis_stretch": {
+    "axis_stretch_horizontal": 1,
+    "axis_stretch_vertical": 1,
+    "enum": "0 = STRETCH, 1 = TILE"
+   },
+   "unity_image_type": "Tiled"
+  },
+  "next_arrow_a": {
+   "name": "next_arrow_a",
+   "category": "dialogs",
+   "width": 8,
+   "height": 6
+  },
+  "next_arrow_b": {
+   "name": "next_arrow_b",
+   "category": "dialogs",
+   "width": 8,
+   "height": 6,
+   "note": "2-frame bounce with next_arrow_a"
+  },
+  "cursor_pointer": {
+   "name": "cursor_pointer",
+   "category": "cursors",
+   "width": 16,
+   "height": 16,
+   "hotspot": {
+    "1x": [
+     1,
+     1
+    ],
+    "2x": [
+     2,
+     2
+    ],
+    "3x": [
+     3,
+     3
+    ]
+   }
+  },
+  "cursor_hand": {
+   "name": "cursor_hand",
+   "category": "cursors",
+   "width": 16,
+   "height": 16,
+   "hotspot": {
+    "1x": [
+     4,
+     1
+    ],
+    "2x": [
+     8,
+     2
+    ],
+    "3x": [
+     12,
+     3
+    ]
+   }
+  },
+  "icon_heart_full": {
+   "name": "icon_heart_full",
+   "category": "icons",
+   "width": 16,
+   "height": 16
+  },
+  "icon_heart_empty": {
+   "name": "icon_heart_empty",
+   "category": "icons",
+   "width": 16,
+   "height": 16
+  },
+  "icon_star": {
+   "name": "icon_star",
+   "category": "icons",
+   "width": 16,
+   "height": 16
+  },
+  "icon_coin": {
+   "name": "icon_coin",
+   "category": "icons",
+   "width": 16,
+   "height": 16
+  },
+  "icon_close": {
+   "name": "icon_close",
+   "category": "icons",
+   "width": 16,
+   "height": 16
+  },
+  "icon_check": {
+   "name": "icon_check",
+   "category": "icons",
+   "width": 16,
+   "height": 16
+  },
+  "icon_arrow_right": {
+   "name": "icon_arrow_right",
+   "category": "icons",
+   "width": 16,
+   "height": 16
+  },
+  "icon_gear": {
+   "name": "icon_gear",
+   "category": "icons",
+   "width": 16,
+   "height": 16
+  }
+ }
+}

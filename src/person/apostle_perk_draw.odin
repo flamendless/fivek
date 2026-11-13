@@ -4,6 +4,7 @@ import rl "vendor:raylib"
 import "../assets"
 import "../currency"
 import "../food"
+import ui_assets "../ui"
 import "../theme"
 
 draw_apostle_perk_bubbles :: proc(p: ^People, view: rl.Rectangle) {
@@ -33,10 +34,12 @@ draw_apostle_perk_bubbles :: proc(p: ^People, view: rl.Rectangle) {
 			draw_speech_bubble_text(cx, anchor_y, row.perk.perk_bubble.text, font)
 		case .Judas_Coin:
 			icon := assets.food_icon_draw_size()
-			bubble_w = icon + pad * 2
-			bubble_h = icon + pad * 2
+			bubble_w = ui_assets.parchment_width_for_inner(icon, 0)
+			bubble_h = ui_assets.parchment_height_for_inner(icon, 0)
 			draw_speech_bubble(cx, anchor_y, bubble_w, bubble_h)
-			cy := anchor_y - bubble_h * 0.5
+			dest := rl.Rectangle{cx - bubble_w * 0.5, anchor_y - bubble_h, bubble_w, bubble_h}
+			inner := ui_assets.parchment_content(dest, 0)
+			cy := inner.y + inner.height * 0.5
 			currency.draw_coin_icon(int(row.perk.perk_bubble.coin_icon), {cx, cy})
 		case .Philip_Calc:
 			icon := assets.food_icon_draw_size()
@@ -45,11 +48,15 @@ draw_apostle_perk_bubbles :: proc(p: ^People, view: rl.Rectangle) {
 			eq_w := f32(rl.MeasureText(eq, font))
 			mid: cstring = "x"
 			mw := f32(rl.MeasureText(mid, font))
-			bubble_w = icon + gap + mw + gap + icon + gap + eq_w + pad * 2
-			bubble_h = icon + pad * 2
+			inner_w := icon + gap + mw + gap + icon + gap + eq_w
+			inner_h := icon
+			bubble_w = ui_assets.parchment_width_for_inner(inner_w, 0)
+			bubble_h = ui_assets.parchment_height_for_inner(inner_h, 0)
 			draw_speech_bubble(cx, anchor_y, bubble_w, bubble_h)
-			left := cx - bubble_w * 0.5 + pad
-			cy := anchor_y - bubble_h * 0.5
+			dest := rl.Rectangle{cx - bubble_w * 0.5, anchor_y - bubble_h, bubble_w, bubble_h}
+			inner := ui_assets.parchment_content(dest, 0)
+			left := inner.x
+			cy := inner.y + inner.height * 0.5
 			if assets.gameplay_ready() {
 				fish := assets.fish_grid()
 				bread := assets.bread_grid()

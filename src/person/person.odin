@@ -60,6 +60,13 @@ Person_Subbehavior :: enum {
 	Scared_To_Chunk,
 }
 
+Emote_Display_Kind :: enum {
+	None,
+	Heart,
+	Exclamation,
+	Question,
+}
+
 Apostle_Perk :: enum {
 	Follow,
 	Minister_Approach,
@@ -143,9 +150,15 @@ Person_Food :: struct {
 }
 
 Person_Behavior :: struct {
-	subbehavior: Person_Subbehavior,
-	flee_remaining: f32,
-	reject_speech_show: bool,
+	subbehavior:          Person_Subbehavior,
+	flee_remaining:       f32,
+	reject_speech_show:   bool,
+	sleep_remaining:      u8,
+	wake_emote_timer:     f32,
+	wake_emote_shake_t:   f32,
+	pending_lineup:       bool,
+	celebrate_emote:      Emote_Display_Kind,
+	reaction_emote_timer: f32,
 }
 
 Person_Identity :: struct {
@@ -283,6 +296,7 @@ init_people :: proc(spawn: #soa[]world.Spawn_Person, lineup_chunk_width: f32, li
 			},
 		}
 	}
+	seed_initial_chunk_sleepers(p)
 	return p
 }
 
@@ -305,11 +319,16 @@ draw_rect_outline :: proc(rect: rl.Rectangle, color: rl.Color) {
 
 is_interactable :: proc(p: ^People, i: int) -> bool {
 	row := p.rows[i]
-	return row.identity.role == .Crowd &&
-		row.motion.phase == .Active &&
-		!row.food.served &&
-		row.motion.state != .Celebrating &&
-		row.behavior.subbehavior == .None
+	if row.identity.role != .Crowd || row.motion.phase != .Active || row.food.served {
+		return false
+	}
+	if row.behavior.subbehavior != .None {
+		return false
+	}
+	if row.behavior.sleep_remaining > 0 {
+		return true
+	}
+	return row.motion.state != .Celebrating
 }
 
 is_crowd_row :: proc(p: ^People, i: int) -> bool {

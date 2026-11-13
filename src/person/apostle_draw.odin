@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
 import "../assets"
+import ui_assets "../ui"
 import "../theme"
 
 apostle_req_row_width :: proc(kind: Stat_Kind, avail: u32, req: u32, font: i32) -> f32 {
@@ -45,15 +46,15 @@ measure_apostle_requirement_bubble :: proc(
 			tw = rw
 		}
 	}
-	bubble_w = tw + BUBBLE_PAD * 2
-	bubble_h = BUBBLE_PAD + title_h + line_gap + f32(n) * req_row_h
+	inner_h := title_h + line_gap + f32(n) * req_row_h
 	if n > 0 {
-		bubble_h += f32(n - 1) * line_gap
+		inner_h += f32(n - 1) * line_gap
 	}
 	if bonus_line != "" {
-		bubble_h += line_gap + title_h
+		inner_h += line_gap + title_h
 	}
-	bubble_h += BUBBLE_PAD
+	bubble_w = ui_assets.parchment_width_for_inner(tw, 0)
+	bubble_h = ui_assets.parchment_height_for_inner(inner_h, 0)
 	return bubble_w, bubble_h
 }
 
@@ -77,10 +78,10 @@ draw_apostle_requirement_bubble :: proc(
 	}
 	bubble_w, bubble_h := measure_apostle_requirement_bubble(p, apostle_idx, available, font)
 	draw_speech_bubble(cx, anchor_y, bubble_w, bubble_h)
-	bx := cx - bubble_w * 0.5
-	by := anchor_y - bubble_h
-	content_x := bx + BUBBLE_PAD
-	ty := by + BUBBLE_PAD
+	dest := rl.Rectangle{cx - bubble_w * 0.5, anchor_y - bubble_h, bubble_w, bubble_h}
+	content := ui_assets.parchment_content(dest, 0)
+	content_x := content.x
+	ty := content.y
 	name_w := rl.MeasureText(def.name, font)
 	rl.DrawText(def.name, i32(content_x), i32(ty), font, def.color)
 	rl.DrawText(":", i32(content_x + f32(name_w)), i32(ty), font, theme.TEXT_INK)

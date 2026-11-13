@@ -70,27 +70,71 @@ draw_pause_overlay :: proc(g: ^Game) {
 	rl.EndMode2D()
 }
 
+@(private = "file")
+playing_hud_row_width :: proc(font: i32, icon_size: f32, icon: UI_Row_Icon, text: cstring) -> f32 {
+	layout_w := row_icon_layout_width(icon, icon_size)
+	tw := rl.MeasureText(text, font)
+	return layout_w + UI_ICON_TEXT_GAP + f32(tw)
+}
+
+@(private = "file")
+draw_playing_stamina_bar :: proc(g: ^Game, mods: player.Player_Modifiers) {
+	if g.run.paused {
+		return
+	}
+	pad := ui_px(g, 4)
+	bar_h := ui_px(g, 8)
+	bar_w := f32(ui_px(g, 96))
+	bar_x := f32(pad)
+	bar_y := g.view.game_size.y - f32(pad) - f32(bar_h)
+	bar_dest := rl.Rectangle{bar_x, bar_y, bar_w, f32(bar_h)}
+	ratio := g.scene.player.stamina / mods.stamina_max
+	fill_col := rl.WHITE
+	if ratio < 0.33 {
+		fill_col = rl.ORANGE
+	}
+	draw_ratio := ratio
+	if g.scene.player.exhausted {
+		if player.exhaust_flash_on() {
+			fill_col = rl.RED
+			draw_ratio = max(ratio, 0.15)
+		} else {
+			draw_ratio = 0
+		}
+	}
+	ui_assets.draw_stamina_bar(bar_dest, draw_ratio, fill_col)
+}
+
 draw_playing_overlay :: proc(g: ^Game) {
 	served := person.count_served(g.scene.people)
 	available := person.run_stats_available(g.run.run_stats, g.run.stats_pledged)
 	stat_font := ui_font(g, PLAYING_HUD_FONT_DESIGN)
 	icon_size := f32(ui_px(g, PLAYING_HUD_ICON_DESIGN))
 	pad := ui_px(g, 4)
-	inner := pad + ui_px(g, 4)
-	stat_line_step := max(stat_font, i32(icon_size)) + ui_px(g, 2)
-	panel_w := ui_px(g, 168)
-	stat_lines := 4
+	stat_line_step := max(stat_font, i32(icon_size)) + ui_px(g, 1)
+	stat_lines: i32 = 4
 	bonuses := person.party_bonuses(g.scene.people)
-	bar_h := ui_px(g, 5)
-	stats_panel_h := ui_px(g, 2) + i32(stat_lines) * stat_line_step + ui_px(g, 2)
-	if !g.run.paused {
-		stats_panel_h += ui_px(g, 2) + bar_h + ui_px(g, 2)
-	}
+	served_label := fmt.ctprintf("%d / %d", served, g.run.person_count)
+	fish_label := fmt.ctprintf("%d", available.fish_given)
+	bread_label := fmt.ctprintf("%d", available.bread_given)
+	coin_label := fmt.ctprintf("%d", g.run.coins)
+	inner_w: f32 = 0
+	inner_w = max(inner_w, playing_hud_row_width(stat_font, icon_size, .People, served_label))
+	inner_w = max(inner_w, playing_hud_row_width(stat_font, icon_size, .Fish, fish_label))
+	inner_w = max(inner_w, playing_hud_row_width(stat_font, icon_size, .Bread, bread_label))
+	inner_w = max(inner_w, playing_hud_row_width(stat_font, icon_size, .Coin, coin_label))
+	inner_w = max(inner_w, f32(ui_px(g, 72)))
+	inner_h: f32 = f32(stat_lines * stat_line_step)
+	panel_w := i32(ui_assets.wood_panel_width_for_inner(inner_w, 0))
+	panel_h := i32(ui_assets.wood_panel_height_for_inner(inner_h, 0))
 	mods := person.party_player_modifiers(bonuses)
 	stats_y := pad
 	rl.BeginMode2D(g.cameras.ui_camera)
-		rl.DrawRectangle(pad, stats_y, panel_w, stats_panel_h, theme.OVERLAY_SCRIM_180)
-		y: i32 = stats_y + ui_px(g, 2)
+		panel_dest := rl.Rectangle{f32(pad), f32(stats_y), f32(panel_w), f32(panel_h)}
+		ui_assets.draw_wood_panel(panel_dest)
+		content := ui_assets.wood_panel_content(panel_dest, 0)
+		inner := i32(content.x)
+		y: i32 = i32(content.y)
 		draw_icon_fn_text_row(
 			inner,
 			y,
@@ -98,7 +142,7 @@ draw_playing_overlay :: proc(g: ^Game) {
 			icon_size,
 			.People,
 			fmt.ctprintf("%d / %d", served, g.run.person_count),
-			rl.WHITE,
+			theme.TEXT_INK,
 		)
 		y += stat_line_step
 		draw_icon_fn_text_row(
@@ -108,7 +152,7 @@ draw_playing_overlay :: proc(g: ^Game) {
 			icon_size,
 			.Fish,
 			fmt.ctprintf("%d", available.fish_given),
-			rl.LIGHTGRAY,
+			theme.TEXT_INK,
 		)
 		y += stat_line_step
 		draw_icon_fn_text_row(
@@ -118,7 +162,7 @@ draw_playing_overlay :: proc(g: ^Game) {
 			icon_size,
 			.Bread,
 			fmt.ctprintf("%d", available.bread_given),
-			rl.LIGHTGRAY,
+			theme.TEXT_INK,
 		)
 		y += stat_line_step
 		draw_icon_fn_text_row(
@@ -128,32 +172,9 @@ draw_playing_overlay :: proc(g: ^Game) {
 			icon_size,
 			.Coin,
 			fmt.ctprintf("%d", g.run.coins),
-			rl.LIGHTGRAY,
+			theme.TEXT_INK,
 		)
 		y += stat_line_step
-		if !g.run.paused {
-			y += ui_px(g, 2)
-			bar_x := inner
-			bar_w := ui_px(g, 100)
-			rl.DrawRectangle(bar_x, y, bar_w, bar_h, theme.BAR_TRACK)
-			ratio := g.scene.player.stamina / mods.stamina_max
-			fill_w := i32(f32(bar_w) * ratio)
-			if fill_w > 0 {
-				fill_col := rl.GREEN
-				if ratio < 0.33 {
-					fill_col = rl.ORANGE
-				}
-				if g.scene.player.exhausted {
-					if player.exhaust_flash_on() {
-						fill_col = rl.RED
-					} else {
-						fill_col = theme.BAR_TRACK
-					}
-				}
-				rl.DrawRectangle(bar_x, y, fill_w, bar_h, fill_col)
-			} else if g.scene.player.exhausted && player.exhaust_flash_on() {
-				rl.DrawRectangle(bar_x, y, bar_w, bar_h, rl.RED)
-			}
-		}
+		draw_playing_stamina_bar(g, mods)
 	rl.EndMode2D()
 }

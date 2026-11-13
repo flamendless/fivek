@@ -6,6 +6,7 @@ import "../food"
 import "../input"
 import "../person"
 import "../player"
+import ui_assets "../ui"
 import "../theme"
 
 TUTORIAL_GOAL_LINES: [2]cstring = {
@@ -250,6 +251,7 @@ draw_tutorial :: proc(g: ^Game) {
 		}
 		person.draw_people(people, view)
 		person.draw_food_bubbles(people, view)
+		person.draw_person_emotes(people, view)
 		currency.draw_drops(&g.tutorial.dropped_coins, view)
 		avail := person.run_stats_available(g.tutorial.stats, g.tutorial.stats_pledged)
 		person.draw_apostle_overlays(people, view, pl.pos, pl.size, avail)
@@ -269,24 +271,20 @@ draw_tutorial :: proc(g: ^Game) {
 		i32(g.view.game_size.y),
 		TUTORIAL_SCRIM_FULL,
 	)
-	rl.DrawRectangle(
-		i32(panel_x),
-		i32(panel_y),
-		i32(panel_w),
-		i32(panel_h),
-		TUTORIAL_SCRIM_PANEL,
-	)
+	panel_dest := rl.Rectangle{panel_x, panel_y, panel_w, panel_h}
+	ui_assets.draw_parchment_dialog(panel_dest)
+	content := ui_assets.parchment_content(panel_dest, 0)
 
-	y := content_y
-	draw_tutorial_centered_text(g, "Goal", y, heading_font, rl.WHITE)
+	y := content.y
+	draw_tutorial_centered_text(g, "Goal", y, heading_font, theme.TEXT_INK)
 	y += f32(heading_font) + line_gap
 	for line in TUTORIAL_GOAL_LINES {
-		draw_tutorial_centered_text(g, line, y, body_font, rl.LIGHTGRAY)
+		draw_tutorial_centered_text(g, line, y, body_font, theme.TEXT_INK)
 		y += f32(body_font) + line_gap
 	}
 	y += section_gap - line_gap
 
-	draw_tutorial_centered_text(g, "Controls", y, heading_font, rl.WHITE)
+	draw_tutorial_centered_text(g, "Controls", y, heading_font, theme.TEXT_INK)
 	y += f32(heading_font) + line_gap
 
 	draw_centered_gameplay_controls(g, i32(y), ctrl_font, icon_size, ctrl_line_step)

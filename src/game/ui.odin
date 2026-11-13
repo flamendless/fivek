@@ -2,6 +2,7 @@ package game
 
 import "core:fmt"
 import rl "vendor:raylib"
+import "../assets"
 import ui_assets "../ui"
 import "../theme"
 
@@ -43,17 +44,12 @@ update_nav_button_hover :: proc(g: ^Game, label: cstring, mouse: rl.Vector2) {
 draw_nav_button :: proc(g: ^Game, label: cstring) {
 	bounds := nav_button_bounds(g, label)
 	font := ui_font(g, NAV_BUTTON_FONT_DESIGN)
-	line_w := f32(max(ui_px(g, 1), 1))
-	fill := theme.BUBBLE_FILL
-	text_col := rl.BLACK
-	border := rl.BLACK
+	btn: assets.Cozy_Button = .Normal
 	if g.ui.nav_hovered {
-		fill = rl.WHITE
-		text_col = rl.BLACK
-		border = rl.RED
+		btn = rl.IsMouseButtonDown(.LEFT) ? .Pressed : .Hover
 	}
-	rl.DrawRectangleRec(bounds, fill)
-	rl.DrawRectangleLinesEx(bounds, line_w, border)
+	ui_assets.draw_wood_button(btn, bounds)
+	text_col := theme.TEXT_INK
 	tw := rl.MeasureText(label, font)
 	tx := i32(bounds.x + (bounds.width - f32(tw)) * 0.5)
 	ty := i32(bounds.y + (bounds.height - f32(font)) * 0.5)

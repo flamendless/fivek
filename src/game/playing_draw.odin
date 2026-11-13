@@ -20,6 +20,7 @@ draw_playing :: proc(g: ^Game) {
 		}
 		person.draw_people(g.scene.people, view)
 		person.draw_food_bubbles(g.scene.people, view)
+		person.draw_person_emotes(g.scene.people, view)
 		currency.draw_drops(&g.run.dropped_coins, view)
 		avail := person.run_stats_available(g.run.run_stats, g.run.stats_pledged)
 		person.draw_apostle_overlays(g.scene.people, view, g.scene.player.pos, g.scene.player.size, avail)

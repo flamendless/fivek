@@ -97,6 +97,7 @@ pick_roam_from_idle :: proc(p: ^People, i: int) {
 roam_to_idle :: proc(p: ^People, i: int) {
 	p.rows[i].motion.state = .Idle
 	p.rows[i].motion.timer = pick_idle_duration(p.rows[i].traits.age)
+	maybe_begin_sleep_on_idle_enter(p, i)
 }
 
 roam_after_step :: proc(p: ^People, i: int) {

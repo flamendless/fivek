@@ -4,6 +4,7 @@ import "core:math"
 import "core:strings"
 import rl "vendor:raylib"
 import "../achievements"
+import ui_assets "../ui"
 import "../theme"
 
 ACHIEVEMENTS_HEADER_DESIGN :: 22
@@ -197,6 +198,87 @@ achievements_wrapped_height :: proc(text: cstring, max_w, font, line_step: i32) 
 }
 
 @(private = "file")
+achievements_card_inner_pad :: proc(g: ^Game) -> i32 {
+	return ui_px(g, 2)
+}
+
+@(private = "file")
+achievements_line_step :: proc(font: i32) -> i32 {
+	return font + 1
+}
+
+@(private = "file")
+achievements_card_block_height :: proc(
+	title, body: cstring,
+	text_w, title_font, desc_font, title_step, desc_step, text_gap: i32,
+) -> i32 {
+	h := achievements_wrapped_height(title, text_w, title_font, title_step)
+	if len(string(body)) > 0 {
+		h += text_gap + achievements_wrapped_height(body, text_w, desc_font, desc_step)
+	}
+	return h
+}
+
+@(private = "file")
+achievements_draw_card_text :: proc(
+	g: ^Game,
+	content: rl.Rectangle,
+	unlocked: bool,
+	def: achievements.Achievement_Def,
+	title_font, desc_font: i32,
+) {
+	inner := achievements_card_inner_pad(g)
+	text_x := i32(content.x) + inner
+	text_w := i32(content.width) - inner * 2
+	if text_w <= 0 {
+		return
+	}
+	avail_h := i32(content.height) - inner * 2
+	if avail_h <= 0 {
+		return
+	}
+
+	title_step := achievements_line_step(title_font)
+	desc_step := achievements_line_step(desc_font)
+	text_gap := ui_px(g, 2)
+	body := unlocked ? def.description : ACHIEVEMENTS_LOCKED_DESC
+	body_color := unlocked ? theme.TEXT_INK : rl.GRAY
+	title_col := unlocked ? theme.TEXT_INK : rl.GRAY
+
+	for _ in 0 ..< 32 {
+		block_h := achievements_card_block_height(
+			def.title,
+			body,
+			text_w,
+			title_font,
+			desc_font,
+			title_step,
+			desc_step,
+			text_gap,
+		)
+		if block_h <= avail_h {
+			break
+		}
+		if title_step > title_font {
+			title_step -= 1
+		} else if desc_step > desc_font {
+			desc_step -= 1
+		} else if text_gap > 1 {
+			text_gap -= 1
+		} else {
+			break
+		}
+	}
+
+	y0 := i32(content.y) + inner
+
+	ty := achievements_draw_wrapped(def.title, text_x, y0, text_w, title_font, title_step, title_col)
+	if len(string(body)) > 0 {
+		ty += text_gap
+		_ = achievements_draw_wrapped(body, text_x, ty, text_w, desc_font, desc_step, body_color)
+	}
+}
+
 achievements_draw_wrapped :: proc(text: cstring, x, y, max_w, font, line_step: i32, color: rl.Color) -> i32 {
 	if max_w <= 0 {
 		return y
@@ -233,7 +315,6 @@ draw_achievements :: proc(g: ^Game) {
 
 	title_font := ui_font(g, ACHIEVEMENTS_CARD_TITLE_DESIGN)
 	desc_font := ui_font(g, ACHIEVEMENTS_CARD_DESC_DESIGN)
-	pad := ui_px(g, ACHIEVEMENTS_CARD_PAD_DESIGN)
 
 	for id in achievements.Id {
 		i := int(id)
@@ -245,24 +326,10 @@ draw_achievements :: proc(g: ^Game) {
 		unlocked := achievements.is_unlocked(g.ach_state, id)
 		def := achievements.ACHIEVEMENT_DEFS[id]
 
-		rl.DrawRectangle(x, y, card_w, card_h, theme.OVERLAY_SCRIM_180)
-
-		text_w := card_w - pad * 2
-		text_x := x + pad
-		title_step := title_font + ui_px(g, 2)
-		desc_step := desc_font + ui_px(g, 2)
-		text_gap := ui_px(g, 4)
-
-		body := unlocked ? def.description : ACHIEVEMENTS_LOCKED_DESC
-		body_color := unlocked ? rl.WHITE : rl.GRAY
-
-		block_h := achievements_wrapped_height(def.title, text_w, title_font, title_step)
-		block_h += text_gap + achievements_wrapped_height(body, text_w, desc_font, desc_step)
-		ty := y + max((card_h-block_h)/2, pad)
-
-		ty = achievements_draw_wrapped(def.title, text_x, ty, text_w, title_font, title_step, rl.WHITE)
-		ty += text_gap
-		_ = achievements_draw_wrapped(body, text_x, ty, text_w, desc_font, desc_step, body_color)
+		panel := rl.Rectangle{f32(x), f32(y), f32(card_w), f32(card_h)}
+		ui_assets.draw_wood_panel(panel)
+		content := ui_assets.wood_panel_content(panel, 0)
+		achievements_draw_card_text(g, content, unlocked, def, title_font, desc_font)
 	}
 
 	draw_nav_button(g, "Back")

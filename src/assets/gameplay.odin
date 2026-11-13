@@ -23,6 +23,8 @@ load_gameplay :: proc() {
 		ok = ok && ui_ok
 	}
 	ok = ok && load_crowd_sheets()
+	ok = ok && load_cozy_textures()
+	ok = ok && load_emote_textures()
 	if !ok {
 		log.warn("assets: gameplay load had failures")
 		release_gameplay_textures()
@@ -34,6 +36,8 @@ load_gameplay :: proc() {
 @(private = "file")
 release_gameplay_textures :: proc() {
 	unload_crowd_sheets()
+	release_cozy_textures()
+	release_emote_textures()
 	release_texture(FISH_ATLAS_PATH)
 	release_texture(BREAD_ATLAS_PATH)
 	for i in 0 ..< COIN_ICON_COUNT {
