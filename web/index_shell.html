@@ -31,7 +31,7 @@
 	<canvas id="canvas" width="960" height="540" tabindex="0"
 		oncontextmenu="event.preventDefault()"
 		onmousedown="event.target.focus()"
-		onkeydown="event.preventDefault()"></canvas>
+		onkeydown="var k=event.key;if(k===' '||k.startsWith('Arrow')||k==='Tab')event.preventDefault()"></canvas>
 	<script src="odin.js"></script>
 	<script>
 		const SAVE_KEY = "fivek:save_fivek.bin";

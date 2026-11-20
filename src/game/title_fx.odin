@@ -383,6 +383,9 @@ title_fx_draw_fish :: proc(g: ^Game) {
 }
 
 draw_bread_pointer :: proc(g: ^Game) {
+	if ui_uses_system_pointer(g) {
+		return
+	}
 	fx := &g.title.fx
 	if !assets.gameplay_ready() {
 		return

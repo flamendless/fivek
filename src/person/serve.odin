@@ -61,6 +61,11 @@ assign_celebrate_emote :: proc(p: ^People, i: int, lineup: bool) {
 }
 
 begin_celebrating :: proc(p: ^People, i: int) {
+	if p.rows[i].motion.state == .Celebrating {
+		p.rows[i].transform.pos_y = p.rows[i].transform.base_y
+		return
+	}
+	p.rows[i].transform.pos_y = p.rows[i].transform.base_y
 	p.rows[i].motion.state = .Celebrating
 	p.rows[i].motion.hop_step = 0
 	p.rows[i].motion.hop_count = u8(CELEBRATE_HOP_MIN + rand.int_max(CELEBRATE_HOP_MAX - CELEBRATE_HOP_MIN + 1))

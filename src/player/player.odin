@@ -10,7 +10,6 @@ PLAYER_W :: 12
 PLAYER_H :: 24
 
 SPRINT_MULT :: 1.5
-DEBUG_SPRINT_MULT :: 30.0
 STAMINA_MAX :: 3.0
 STAMINA_REGEN :: 0.35
 EXHAUST_FLASH_HZ :: 8.0
@@ -89,11 +88,7 @@ update :: proc(
 		p.exhausted = false
 		p.stamina = mods.stamina_max
 		if shift && move_x != 0 {
-			when config.IS_DEBUG {
-				speed_mult = DEBUG_SPRINT_MULT
-			} else {
-				speed_mult = SPRINT_MULT
-			}
+			speed_mult = sprint_bonus
 		}
 	} else {
 		if mods.ignore_stamina {

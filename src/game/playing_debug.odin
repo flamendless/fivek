@@ -75,10 +75,13 @@ when config.IS_DEBUG {
 	}
 
 	draw_playing_debug_overlay :: proc(g: ^Game) {
-		if !playing_debug_visible(g) {
+		if !playing_debug_visible(g) || g.display.dev_open {
 			return
 		}
 		speed: f32 = 1.0
+		if g.display.dev_speed > 1 {
+			speed = g.display.dev_speed
+		}
 		when config.IS_AUTOTEST {
 			if g.autotest.autoplay {
 				speed = AUTOPLAY_SIM_SPEED

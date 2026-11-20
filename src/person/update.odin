@@ -70,6 +70,8 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		if p.rows[i].motion.hop_step < p.rows[i].motion.hop_count {
 			t := math.max(p.rows[i].motion.hop_timer / CELEBRATE_HOP_DURATION, 0)
 			p.rows[i].transform.pos_y = p.rows[i].transform.base_y - CELEBRATE_HOP_HEIGHT * math.abs(math.sin(t * math.PI))
+		} else {
+			p.rows[i].transform.pos_y = p.rows[i].transform.base_y
 		}
 
 	case .Idle:
@@ -83,7 +85,8 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		if p.rows[i].identity.role == .Crowd &&
 		   p.rows[i].food.has_fish &&
 		   p.rows[i].food.has_bread &&
-		   !p.rows[i].food.served {
+		   !p.rows[i].food.served &&
+		   p.rows[i].motion.state != .Celebrating {
 			begin_celebrating(p, i)
 			return
 		}
@@ -100,7 +103,8 @@ update_person_at :: proc(p: ^People, i: int, dt: f32) {
 		if p.rows[i].identity.role == .Crowd &&
 		   p.rows[i].food.has_fish &&
 		   p.rows[i].food.has_bread &&
-		   !p.rows[i].food.served {
+		   !p.rows[i].food.served &&
+		   p.rows[i].motion.state != .Celebrating {
 			begin_celebrating(p, i)
 			return
 		}

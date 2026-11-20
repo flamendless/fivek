@@ -136,6 +136,8 @@ crowd_scene_update_apostle_jump :: proc(scene: ^Crowd_Scene, person_i: int, dt: 
 		t := math.max(row.motion.hop_timer / CELEBRATE_HOP_DURATION, 0)
 		row.transform.pos_y =
 			row.transform.base_y - CELEBRATE_HOP_HEIGHT * math.abs(math.sin(t * math.PI))
+	} else {
+		row.transform.pos_y = row.transform.base_y
 	}
 }
 
@@ -249,6 +251,8 @@ crowd_scene_update_person :: proc(p: ^People, i: int, dt: f32) {
 			t := math.max(p.rows[i].motion.hop_timer / CELEBRATE_HOP_DURATION, 0)
 			p.rows[i].transform.pos_y =
 				p.rows[i].transform.base_y - CELEBRATE_HOP_HEIGHT * math.abs(math.sin(t * math.PI))
+		} else {
+			p.rows[i].transform.pos_y = p.rows[i].transform.base_y
 		}
 	case .Idle:
 		p.rows[i].motion.timer -= dt

@@ -136,6 +136,7 @@ Game :: struct {
 	title:      Game_Title,
 	autotest:   Game_Autotest,
 	persist:    Game_Persist,
+	display:    Game_Display,
 	career:               person.Career_Stats,
 	career_committed:     bool,
 	ach_state:            achievements.State,
@@ -148,6 +149,7 @@ init :: proc(defs := Game_Defs{}) -> ^Game {
 	log.infof("initializing game (population target %d)", defs.target_population)
 	g := new(Game)
 	g.defs = defs
+	g.display = display_defaults()
 	g.mode = .Splash
 	g.prefs.intro_seen = load_intro_seen()
 	g.prefs.tutorial_seen = load_tutorial_seen()
@@ -205,11 +207,16 @@ update :: proc(g: ^Game) {
 	} else {
 		input.begin_frame()
 	}
+	toggle_dev_panel(g)
+	tick_display(g)
+	tick_ui_pointer(g)
+	if g.display.dev_open {
+		update_dev_panel(g)
+		dt := rl.GetFrameTime()
+		update_achievement_toasts(g, dt)
+		return
+	}
 	when config.IS_DEBUG {
-		if rl.IsKeyPressed(.R) {
-			debug_reload_current_state(g)
-			return
-		}
 		if input.key_pressed(.L) {
 			debug_queue_random_achievement_toast(g)
 		}
@@ -286,8 +293,11 @@ draw :: proc(g: ^Game) {
 		draw_debug_fps(g)
 		draw_dev_version_badge(g)
 	}
-	draw_bread_pointer(g)
 	draw_achievement_toasts(g)
+	draw_dev_panel(g)
+	if !ui_uses_system_pointer(g) {
+		draw_bread_pointer(g)
+	}
 	rl.EndMode2D()
 
 	rl.EndDrawing()

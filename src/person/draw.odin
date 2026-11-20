@@ -17,6 +17,9 @@ food_bubble_visible :: proc(p: ^People, i: int) -> bool {
 	if row.identity.role != .Crowd || (!row.food.has_fish && !row.food.has_bread) {
 		return false
 	}
+	if row.food.has_fish && row.food.has_bread {
+		return false
+	}
 	switch row.motion.phase {
 	case .Gone, .In_Lineup, .Following:
 		return false

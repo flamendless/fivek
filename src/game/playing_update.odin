@@ -37,6 +37,9 @@ update_playing :: proc(g: ^Game) {
 
 	bonuses := person.party_bonuses(g.scene.people)
 	mods := person.party_player_modifiers(bonuses)
+	if g.display.dev_speed > 1 {
+		mods.sprint_mult = g.display.dev_speed
+	}
 	moved := player.update(g.scene.player, g.scene.ground, g.view.world_width, mods, dt)
 	if moved > 0 {
 		person.stat_add(&g.run.run_stats, .Distance_Walked, u32(moved))

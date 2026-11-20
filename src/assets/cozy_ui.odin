@@ -6,6 +6,8 @@ COZY_PANEL_WOOD_PATH :: "assets/ui/cozyuikit/2x/panels/panel_wood.png"
 COZY_DIALOG_PARCHMENT_PATH :: "assets/ui/cozyuikit/2x/dialogs/dialog_parchment.png"
 COZY_BAR_FRAME_PATH :: "assets/ui/cozyuikit/2x/bars/bar_frame_wood.png"
 COZY_BAR_FILL_HEALTH_PATH :: "assets/ui/cozyuikit/2x/bars/bar_fill_health.png"
+COZY_CHECKBOX_OFF_PATH :: "assets/ui/cozyuikit/2x/toggles/checkbox_off.png"
+COZY_CHECKBOX_ON_PATH :: "assets/ui/cozyuikit/2x/toggles/checkbox_on.png"
 
 Cozy_Button :: enum {
 	Normal,
@@ -37,6 +39,14 @@ cozy_bar_fill_health :: proc() -> rl.Texture2D {
 	return peek_texture(COZY_BAR_FILL_HEALTH_PATH)
 }
 
+cozy_checkbox_off :: proc() -> rl.Texture2D {
+	return peek_texture(COZY_CHECKBOX_OFF_PATH)
+}
+
+cozy_checkbox_on :: proc() -> rl.Texture2D {
+	return peek_texture(COZY_CHECKBOX_ON_PATH)
+}
+
 cozy_button :: proc(state: Cozy_Button) -> rl.Texture2D {
 	return peek_texture(COZY_BUTTON_PATHS[state])
 }
@@ -46,6 +56,8 @@ COZY_PATHS: []cstring = {
 	COZY_DIALOG_PARCHMENT_PATH,
 	COZY_BAR_FRAME_PATH,
 	COZY_BAR_FILL_HEALTH_PATH,
+	COZY_CHECKBOX_OFF_PATH,
+	COZY_CHECKBOX_ON_PATH,
 }
 
 load_cozy_textures :: proc() -> bool {

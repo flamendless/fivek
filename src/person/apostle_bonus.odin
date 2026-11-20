@@ -140,7 +140,8 @@ party_debug_stat_rows :: proc(
 	walk_add := walk_speed * (mult - 1.0)
 	run_base := walk_speed * player.SPRINT_MULT
 	run_add := run_base * (mult - 1.0)
-	dbg_run_base := walk_speed * player.DEBUG_SPRINT_MULT
+	// Pause overlay reference only (dev ~ slider caps sprint_mult at 50).
+	dbg_run_base := walk_speed * 50.0
 	dbg_run_add := dbg_run_base * (mult - 1.0)
 
 	speed_base := fmt.ctprintf("%.0f", walk_speed)
